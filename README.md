@@ -36,6 +36,7 @@ Anonymous functions and closures
 - closure: Function assigned to a variable, can be executed by accessing the variable and adding brackets + arguments.
 
 https://en.wikipedia.org/wiki/Closure_(computer_programming)
+
 https://secure.php.net/manual/en/functions.anonymous.php
 
 Abstract classes
@@ -72,7 +73,9 @@ Exception and error handling
   is rendered (output can be disabled in PHP with display_errors).
 
 https://secure.php.net/manual/en/errorfunc.configuration.php#ini.error-reporting
+
 https://secure.php.net/manual/en/errorfunc.configuration.php#ini.display-errors
+
 https://secure.php.net/manual/en/function.set-error-handler.php
 
 Traits
