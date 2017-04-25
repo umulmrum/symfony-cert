@@ -118,6 +118,17 @@ Client / Server interaction
 Status codes
 ------------
 
+- Every HTTP response contains a 3-digit status code indicating various outcomes of the request.
+  The most important status codes are:
+  - 200 everything went as expected
+  - 301 permanent redirect
+  - 302 found (often used as non-permanent redirect, contradicting the standard)
+  - 403 access denied
+  - 404 file/resource not found
+  - 500 internal server error
+  
+https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
 HTTP request
 ------------
 
@@ -139,14 +150,45 @@ Content negotiation
 Language detection
 ------------------
 
+- The client may pass the HTTP header "Accept-Language" which contains an ordered list of accepted languages.
+- The server is not bound to this header but may choose the served language in another way.
+- It is common that URLs contain a language identifier (often the 2-letter ISO 639-1 identifier) to
+  specify the resource's language. This way, a resource that is available in multiple languages is
+  unambiguously identifiable by an URL.
+- Symfony: The JMSI18nRoutingBundle provides support for internationalized routes.
+
+https://github.com/schmittjoh/JMSI18nRoutingBundle
+
 Symfony Architecture
 ====================
 
 Symfony Standard Edition
 ------------------------
 
+- The Symfony Standard Edition is an application skeleton that aids in starting a new application.
+- It contains the full-stack Symfony FrameworkBundle as well as some third-party bundles and their
+  configuration.
+- The Symfony Standard Edition as well as editions as a whole will be discontinued and replaced by
+  Symfony Flex in Symfony 4.0 (not part of this certification).
+
+https://symfony.com/doc/current/setup.html
+
+https://github.com/symfony/symfony-standard
+
+http://fabien.potencier.org/symfony4-compose-applications.html
+
 License
 -------
+
+- Symfony is licensed under the MIT license.
+- The MIT license is a permissive license that imposes almost no limitations on what users are
+  allowed to do.
+- This license is also very common in the whole Symfony eco-system.
+- When contributing to Symfony, the author must publish the contributions under the MIT license.
+
+https://github.com/symfony/symfony/blob/master/LICENSE
+
+https://symfony.com/doc/current/contributing/code/patches.html#make-a-pull-request
 
 Components
 ----------
