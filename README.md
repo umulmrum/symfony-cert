@@ -193,14 +193,90 @@ https://symfony.com/doc/current/contributing/code/patches.html#make-a-pull-reque
 Components
 ----------
 
+Symfony is a set of reusable components. Each component can be used individually, but it is also
+possible to use all of them together as a full-stack framework.
+
+As of Symfony 3.0 these components are available:
+
+- Asset
+- BrowserKit
+- ClassLoader (deprecated as of 3.3 in favor of Composer)
+- Config
+- Console
+- CssSelector
+- Debug
+- DependencyInjection
+- DomCrawler
+- EventDispatcher
+- ExpressionLanguage
+- Filesystem
+- Finder
+- Form
+- HttpFoundation
+- HttpKernel
+- Inflector (Symfony-internal use only)
+- Intl
+- LDAP
+- OptionsResolver
+- Process
+- PropertyAccess
+- PropertyInfo
+- Routing
+- Security
+- Serializer
+- Stopwatch
+- Templating
+- Translation
+- Validation
+- VarDumper
+- YAML
+
+In later Symfony versions, more components were added
+
+- Cache (3.2+)
+- Lock (3.3+)
+- WebLink (3.3+)
+- Workflow (3.2+)
+
+https://symfony.com/doc/current/components/index.html
+
 Bundles
 -------
+
+Symfony comes with some bundles:
+
+- DebugBundle
+- FrameworkBundle
+- SecurityBundle
+- TwigBundle
+- WebProfilerBundle
+
+https://symfony.com/doc/bundles/
 
 Bridges
 -------
 
+Symfony comes with some bridges:
+
+- Doctrine Bridge
+- Monolog Bridge
+- PhpUnit Bridge
+- ProxyManager Bridge
+- Twig Bridge
+
+These bridges integrate external libraries with Symfony.
+
 Configuration
 -------------
+
+There are basically two ways to configure an application and its bundles:
+
+- container parameters
+- semantic configuration
+
+https://symfony.com/doc/current/configuration.html
+https://symfony.com/doc/current/configuration/configuration_organization.html
+https://symfony.com/doc/current/bundles/configuration.html
 
 Code organization
 -----------------
@@ -211,17 +287,83 @@ Request handling
 Exception handling
 ------------------
 
+- Exceptions that are not handled by the application will be caught by Symfony's HttpKernel class
+  (or the Application class if running a console command).
+- A kernel.exception event will be dispatched, and event listeners can handle the exception.
+- Event listeners can also set an HTTP status code. If this is not done, the status code is retrieved
+  from the exception if it is an instance of HttpExceptionInterface. Otherwise status 500 is set.
+- In dev mode, an exception page showing the stack trace will be displayed if no custom exception
+  handler intervenes.
+- In prod mode, a simpler error page will be displayed in order not to leak internals.
+
 Event dispatcher and kernel events
 ----------------------------------
+
+- The event dispatcher is a Symfony component that publishes events to subscribers.
+- There are event listeners and event subscribers. The former are wired to the events they listen to
+  in the dependency injection container, the latter define the events they listen to themselves.
+- Event listeners and subscribers are normally defined in the dependency injection container by
+  service definitions that contain the tag kernel.event_listener or kernel.event_subscribe.
+- It is also possible to add event listeners at runtime.
+- There are some predefined events, but custom events can be defined by simply dispatching them.
+  Events are only identified by their name.
+- An event can also have a payload which is encapsulated in the class Symfony\Component\EventDispatcher\Event.
+- It is possible to define custom events by subclassing the Event class.
+- Event listeners can be given a priority to change the order in which they are called.
+- The kernel dispatches a few events during the request's lifecycle. These are:
+  - kernel.request at the beginning of the request. Event listeners may provide a response in
+    which case the request takes a "shortcut" (only the kernel.response, kernel.finish_request
+    and kernel.terminate events are dispatched). Typically routing and access checks are performed
+    here.
+  - kernel.controller is dispatched after kernel.request set controller options and a controller
+    for the request was resolved. Using this event, the controller can be changed or modified.
+  - kernel.view is dispatched after the controller was called but did not return a Response object.
+    Listeners should generate a Response object from the controller's response or an exception is thrown.
+  - kernel.response is dispatched after the response is ultimately known. Listeners may change or
+    replace the response.
+  - kernel.terminate is dispatched at the very end of the request. Depending on the PHP interpreter,
+    the connection will be closed at that time and the client will not be influenced by longer-running
+    actions. This event can e.g. be used to send emails without slowing down the request.
+  
+https://symfony.com/doc/current/event_dispatcher.html
 
 Official best practices
 -----------------------
 
+The official best practices are a set of suggestions to keep an application simple.
+
+https://symfony.com/doc/current/best_practices/index.html
+
 Release management
 ------------------
 
+- A new minor version of Symfony is released every 6 months (May and November).
+- A new major version of Symfony is released every two years (November).
+- There is a development phase lasting 4 months and a stabilization phase lasting 2 months.
+- The stabilization phase allows the Symfony eco-system to adjust to the new version.
+- There are 5 minor versions for each major version, with the last minor version being an LTS
+  release.
+- A standard version is supported for 8 months after release, and receives security fixes
+  for 14 months after release.
+- An LTS release is supported for 3 years after release, and receives security fixes for
+  4 years after release.
+
+https://symfony.com/doc/current/contributing/community/releases.html
+
 Backward compatibility promise
 ------------------------------
+
+- Symfony uses Semantic Versioning. Only major releases are allowed to break backward compatibility.
+- Minor and fix releases must ensure that the existing API is retained.
+- It is also possible to add a new way to do things as long as the old way stays the same (until
+  the next major version).
+- BC is not assured if user code does one of the following:
+  - Use an interface that is marked as @internal.
+  - Extend a class and add a property or method.
+  - Call a private property or method via reflection.
+  - Use or modify code in a namespace containing "Tests"
+
+https://symfony.com/doc/current/contributing/code/bc.html
 
 Deprecations best practices
 ---------------------------
