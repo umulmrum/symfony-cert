@@ -368,23 +368,79 @@ https://symfony.com/doc/current/contributing/code/bc.html
 Deprecations best practices
 ---------------------------
 
+Following semantic versioning, deprecations are only allowed in major or minor versions, not in fix versions.
+
+https://symfony.com/doc/current/contributing/code/conventions.html#contributing-code-conventions-deprecations
+
 Standardization
 ===============
 
 Release management and roadmap schedule
 ---------------------------------------
 
+See above.
+
 Framework interoperability and PSRs
 -----------------------------------
+
+Symfony embraces standards and interoperability. Symfony components can be used in other frameworks
+and Symfony itself uses some standard components like Doctrine and Composer instead of reinventing
+all wheels. Symfony is member of the PHP-FIG group that standardizes common PHP tasks.
+
+Symfony implements the following PSR standards:
+
+- PSR-0 (basic class autoloading, deprecated)
+- PSR-1 (coding style)
+- PSR-2 (coding style)
+- PSR-3 (logger interface)
+- PSR-4 (class autoloading, Symfony class loader deprecated in 3.3)
+- PSR-6 (caching interface, Symfony 3.1+)
+- PSR-7 (HTTP message interface)
+- PSR-11 (service container interface, Symfony 3.3+, standard not accepted yet)
+- PSR-16 (simple cache, Symfony 3.3+)
+
+Not supported (or I didn't find anything stating support):
+
+- PSR-13 (hypermedia links)
+
+http://www.php-fig.org/psr/
 
 Naming conventions
 ------------------
 
+https://symfony.com/doc/current/contributing/code/conventions.html
+
 Coding standards
 ----------------
 
+In short: Follow PSR-0, -1, -2, -4 and some extra rules from the first link below.
+ 
+There is a code style fixer available that formats code automatically. This tool allows
+to configure which changes should be applied, and it can be configured so that it automatically
+follows the Symfony coding standards.
+
+When contributing to Symfony, the fabbot will check the submitted code for code style issues
+(among other checks).
+
+https://symfony.com/doc/current/contributing/code/standards.html
+https://github.com/FriendsOfPhp/PHP-CS-Fixer
+
 Third-party libraries integration
 ---------------------------------
+
+The Symfony standard edition integrates the following third-party libraries:
+
+- Doctrine ORM (which brings the Doctrine DBAL lib)
+- DoctrineBundle
+- DoctrineCacheBundle
+- Incenteev ComposerParameterHandler (interactive generation of the parameters.yml file)
+- Monolog (including the MonologBundle for Symfony integration)
+- paragonie/random-compat (compatibility layer for random number generation unification across PHP versions)
+- SensioDistributionBundle (composer hooks for some post-install/post-update tasks, security checker)
+- SensioFrameworkExtraBundle (annotation support for controllers, PSR-7 support for injection into controllers)
+- SensioGeneratorBundle (commands for code generation for bundles, commands, controllers, forms, Doctrine)
+- Swiftmailer (including the Swiftmailer bundle for Symfony integration)
+- Twig
 
 Composer packages handling
 --------------------------
@@ -397,6 +453,28 @@ Framework overloading
 
 Semantic versioning
 -------------------
+
+From semver.org:
+
+---
+
+Given a version number MAJOR.MINOR.PATCH, increment the:
+
+- MAJOR version when you make incompatible API changes,
+- MINOR version when you add functionality in a backwards-compatible manner, and
+- PATCH version when you make backwards-compatible bug fixes.
+
+Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+
+---
+
+The statements above apply only to the public API of a library or framework. It is up to the
+developer to define what is public.
+
+Semantic versioning gives a user of a library or framework the confidence that upgrading to a new
+minor or patch version will not break existing functionality.
+
+http://semver.org/
     
 Bundles
 =======
