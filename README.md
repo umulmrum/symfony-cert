@@ -397,11 +397,11 @@ Symfony implements the following PSR standards:
 - PSR-6 (caching interface, Symfony 3.1+)
 - PSR-7 (HTTP message interface)
 - PSR-11 (service container interface, Symfony 3.3+, standard not accepted yet)
+- PSR-13 (hypermedia links, Symfony 3.3+)
 - PSR-16 (simple cache, Symfony 3.3+)
 
-Not supported (or I didn't find anything stating support):
-
-- PSR-13 (hypermedia links)
+So Symfony supports all PSRs as of version 3.3. In Symfony 3.0 PSRs 6, 11, 13, 16 are not yet 
+supported.
 
 http://www.php-fig.org/psr/
 
@@ -482,23 +482,131 @@ Bundles
 Naming conventions
 ------------------
 
+A bundle should always be named with a "Bundle" suffix. The bundle name should be rather short
+and as most identifiers in the Symfony eco-system be written in camel-case.
+
+Example: HelloWorldBundle.
+
+A bundle that is intended for reuse also has the vendor name as prefix for the bundle.
+
+Example: AcmeHelloWorldBundle.
+
+A bundle that is not intended for reuse lives in the src directory of the application and normally
+has no vendor prefix.
+
 Code organization
 -----------------
 
 Controllers
 -----------
 
+A controller is responsible for generating a response from a request. It is the main entrypoint
+for executing business code and calls other services and often renders templates or other output.
+
+A controller normally returns a Response object (or its subclasses such as JsonResponse, 
+RedirectResponse, BinaryFileResponse, StreamedResponse). It can also return arbitrary values in
+which case an event listener for the kernel.view event must generate the Response object.
+
+Controllers are by convention located in the Controllers directory of a bundle. There they can
+be auto-discovered by the framework if they extend the base Controller class.
+
+Controllers derived from the base Controller provide these shortcut methods:
+
+- generateUrl() (generates a URL for a given route)
+- forward() (forwards the request to another controller as an internal sub-request)
+- redirect() (redirects to a URL)
+- redirectToRoute() (redirects to a route)
+- addFlash() (adds a flash message to the current session)
+- isGranted() (checks if the current user has a certain permission)
+- denyAccessUnlessGranted() (throws an exception if the current user does not have a certain permission)
+- renderView() (renders a view and returns the rendered string)
+- render() (renders a view and returns a response)
+- stream() (streams a view)
+- createNotFoundException() (creates an exception with HTTP status 404)
+- createAccessDeniedException() (creates an exception with HTTP status 403)
+- createForm() (creates a form instance)
+- createFormBuilder() (creates a form builder instance)
+- getDoctrine() (returns the Doctrine registry)
+- getUser() (returns the current user)
+- has()/get()/getParameter() (dependency injection container methods)
+- isCsrfTokenValid() (returns if a given CSRF token is valid)
+
+Alternatively controllers can be defined as services in the service container (independently of
+if they are located in the Controllers directory or not). The advantage is that dependency 
+injection can be used to inject exactly the required services instead of having to rely on the
+Service Locator semi-anti-pattern the base controller uses. The disadvantage is that every 
+dependency needs to be declared by the developer.
+
+https://symfony.com/doc/current/controller.html
+https://en.wikipedia.org/wiki/Service_locator_pattern
+
 The views
 ---------
+
+View are normally written in a templating language such as Twig. Twig is included in the Symfony
+distribution, but plain PHP templates or other templating languages can be used as well.
+
+Views are normally located in the Resources/views directory of a bundle or in the 
+app/Resources/views directory of the application.
+
+If the controller extends the base Controller, there is a render() method shortcut available. 
+
+https://symfony.com/doc/current/templating.html
 
 The resources
 -------------
 
+Resources are files that are not PHP code or templates, such as images, CSS or JavaScript files.
+
+Normally they are located in the Resources/public directory of a bundle or in the 
+app/Resources/public directory of the application.
+
 Overriding default error pages
 ------------------------------
 
+Error pages can be modified in three ways:
+
+- Override the default error templates.
+  - Place the custom template in app/Resources/TwigBundle/views/Exception.
+  - Templates are named like "error<status>.<format>.twig", e.g. error404.html.twig.
+  - Templates can therefore be overridden for each error and format independently.
+  - If a template for a status code does not exist, use the more generic name for the format,
+    e.g. error.json.twig.
+  - If a template for the format does not exist as well, use the HTML template error.html.twig.
+  - Exception pages can be tested by registering routes predefined in the TwigBundle.
+- Override the default exception controller.
+  - Create a new controller.
+  - in the config.yml file, set twig: exception_controller to this controller.
+- Register custom event listeners that listen to the kernel.exception event.
+  - Set a Response object in the GetResponseForExceptionEvent that is passed to the listener.
+  - Propagation of the event is stopped as soon as the first listener set a Response.
+
+https://symfony.com/doc/current/controller/error_pages.html
+
 Bundle inheritance
 ------------------
+
+- A bundle can override parts of another bundle by extending the getParent() method in the 
+  bundle class and specifying the bundle to inherit from.
+- Then create resources in the Resources directory with the same path and name of the original
+  resources to override them.
+- controllers can be overridden by creating controllers with the same name. When a controller is
+  called using the Bundle:Class:ControllerMethod syntax (only), the controller from the inheriting
+  bundle will be called instead.
+- Templates can only be overridden in the application, by placing them in the 
+  app/Resources/<bundle_name>/views directory.
+- Translations can only be overridden by loading translations with the same keys after the original
+  ones, by registering overriding bundles after overridden bundles in the AppKernel (which is not
+  allowed according to the bundle structure best practices). Alternatively, set translations in
+  the app/Resources/translations directory, as messages in this directory will always override those
+  in bundles.
+- Validation rules cannot normally be overridden. It is necessary to create a new validation group
+  for the changed rules and modify the bundle configuration to use the new group.
+
+https://symfony.com/doc/current/bundles/inheritance.html
+https://symfony.com/doc/current/templating/overriding.html
+https://symfony.com/doc/current/bundles/override.html#override-translations
+https://symfony.com/doc/current/bundles/override.html#override-validation
 
 Event dispatcher and kernel events
 ----------------------------------
