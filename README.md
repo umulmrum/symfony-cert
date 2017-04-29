@@ -507,10 +507,10 @@ A controller normally returns a Response object (or its subclasses such as JsonR
 RedirectResponse, BinaryFileResponse, StreamedResponse). It can also return arbitrary values in
 which case an event listener for the kernel.view event must generate the Response object.
 
-Controllers are by convention located in the Controllers directory of a bundle. There they can
+Controller classes are by convention located in the Controllers directory of a bundle. There they can
 be auto-discovered by the framework if they extend the base Controller class.
 
-Controllers derived from the base Controller provide these shortcut methods:
+Controller classes derived from the base Controller class provide these shortcut methods:
 
 - generateUrl() (generates a URL for a given route)
 - forward() (forwards the request to another controller as an internal sub-request)
@@ -683,20 +683,50 @@ Controllers
 Naming conventions
 ------------------
 
+- Controller classes should be located in a `Controller` directory.
+- Controller classes should have a "Controller" suffix.
+- Controller methods should have an "Action" suffix.
+
+Using these conventions, a controller (which denotes the method, not the class) can be
+auto-discovered during routing and be referenced by the short-hand syntax
+Bundle:Class:Method (the Method part does not contain the "Action" suffix, it will be
+appended automatically when called).
+
+https://symfony.com/doc/current/bundles/best_practices.html#directory-structure
+
+https://symfony.com/doc/current/controller.html#a-simple-controller
+
 The base Controller class
 -------------------------
+
+See the `Controllers` chapter above.
 
 The request
 -----------
 
+The request class can be automatically injected into the controller. To do this,
+use a method argument of type `Request`.
+
+https://symfony.com/doc/current/controller.html#the-request-object-as-a-controller-argument
+
 The response
 ------------
+
+A controller should return a `Response` object or a sub-class, such as the built-in sub-classes
+`JsonResponse`, `RedirectResponse`, `BinaryFileResponse`. It can also return arbitrary values in
+which case an event listener for the kernel.view event must generate the Response object.
+
+https://symfony.com/doc/current/controller.html#the-request-and-response-object
+
+https://symfony.com/doc/current/components/http_foundation.html#response
 
 The cookies
 -----------
 
 The session
 -----------
+
+https://symfony.com/doc/current/components/http_foundation/sessions.html
 
 The flash messages
 ------------------
