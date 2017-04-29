@@ -604,8 +604,11 @@ Bundle inheritance
   for the changed rules and modify the bundle configuration to use the new group.
 
 https://symfony.com/doc/current/bundles/inheritance.html
+
 https://symfony.com/doc/current/templating/overriding.html
+
 https://symfony.com/doc/current/bundles/override.html#override-translations
+
 https://symfony.com/doc/current/bundles/override.html#override-validation
 
 Event dispatcher and kernel events
@@ -613,7 +616,67 @@ Event dispatcher and kernel events
 
 Semantic configuration and compiler passes
 ------------------------------------------
-    
+
+Semantic configuration:
+
+With semantic configuration it is possible to configure a bundle. It is possible to apply
+validation and default values to config values.
+ 
+Semantic configuration consists of these parts:
+- A configuration class implementing the ConfigurationInterface interface. This class returns
+  a config tree builder that contains rules for validating the config values (ensuring that
+  required values are configured and values have the correct type).
+- An extension class that extends the `Extension` class. This class receives the config value
+  and calls the configuration processing with the configuration class. Depending on the
+  configuration, the extension can e.g. load different service definition files or set
+  the config values as service arguments.
+  The extension class should follow a naming scheme to be auto-discovered by the framework:
+  - Be located in the DependencyInjection directory of the bundle.
+  - Have the same name as the bundle class, but with an "Extension" suffix instead of "Bundle".
+
+The config values can then be set in the config.yml (or similar) files of the application.
+Each bundle has a config namespace that equals the bundle name minus the "Bundle" suffix and
+converted to snake case. The Configuration class needs to define this namespace in the config
+tree builder. Symfony will then pass all values in this namespace to the extension class.
+
+As config values can be set on different levels, e.g. both in the config.yml and in the
+config_dev.yml, there is a resolution algorithm that selects the correct values in the
+processConfiguration() method of the extension. Extensions may choose another resolution
+though, as processConfiguration() needs to be called manually and the extension receives
+all values in an array of arrays.
+
+A bundle can prepend configuration for another bundle so that it acts as default value
+provider if config values are not set for the other bundle. To do this, the extension
+needs so implement the PrependExtensionInterface and provide the config in the prepend()
+method.
+
+In contrast to a container parameter, a configuration parameter is only available in the
+extension's load() method, not in the service container.
+
+The best practices suggest to use semantic configuration only for distributed bundles,
+not in a simple application.
+
+Compiler passes:
+
+A compiler pass is a modification of the service container. With semantic configuration it
+is only possible to modify the current bundle (or to prepend settings), a compiler pass has 
+access to the complete service container and can therefore modify arbitrary container items.
+A compiler pass is registered in the bundle's build() method. A compiler pass name should
+have the suffix "Pass" by convention.
+
+A common use case for a compiler pass is to collect all services with a specific tag and
+to provide these services to some other service.
+
+https://symfony.com/doc/current/bundles/extension.html
+
+https://symfony.com/doc/current/bundles/configuration.html
+
+https://symfony.com/doc/current/bundles/prepend_extension.html
+
+https://symfony.com/doc/current/best_practices/configuration.html#semantic-configuration-don-t-do-it
+
+https://symfony.com/doc/current/service_container/compiler_passes.html
+
 Controllers
 ===========
 
