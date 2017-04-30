@@ -916,11 +916,60 @@ Templating with Twig
 Auto escaping
 -------------
 
+- Output is automatically HTML-escaped in Twig to prevent XSS attacks. Auto-escaping can be
+turned off for a string by applying the `raw` filter.
+- It is also possible to specify `autoescape` blocks to auto-escape everything within that block.
+
+https://symfony.com/doc/current/templating/escaping.html
+
+https://twig.sensiolabs.org/doc/2.x/api.html#escaper-extension
+
 Template inheritance
 --------------------
 
+- A template can extend another template by specifying "{% extends other-template.html.twig %}"
+at the beginning (should be the first tag in the template, not sure if this is enforced).
+- A sub-template can only change block contents, so the parent template needs to declare those
+  blocks first.
+- A sub-template's block definition overrides a parent's block definition completely, but the
+  sub-template can make a {{ parent() }} call to render the parent block, similar to PHP's 
+  method inheritance.
+- Templates can also be extended dynamically, by passing a variable to the extends tag; any
+  twig expression that returns a template name is allowed, so it is possible to use e.g. the
+  ternary operator.
+- It is also possible to pass an array to extends; then the first template that exists will be
+  used.
+- With the `use` tag, the blocks of another template are imported into the current template.
+  This is only possible if the used template does not extend another template, does not define
+  macros and if the body is empty (only blocks are allowed, as well as the `use` tag).
+- The `use` tag does not allow expressions, the used template must be named literally.
+- Blocks in the used template with the same name as blocks in the current template are ignored,
+  unless they are renamed in the use statement ('use "template.html.twig" with someblock as
+  otherblock').
+- If two templates imported with `use` define a block with the same name, the latest template
+  wins.
+
+https://twig.sensiolabs.org/doc/2.x/templates.html#template-inheritance
+
+https://twig.sensiolabs.org/doc/2.x/tags/extends.html
+
+https://twig.sensiolabs.org/doc/2.x/tags/use.html
+
 Global variables
 ----------------
+
+- Built-in global variables are:
+  - _self: current template name.
+  - _context: current context.
+  - _charset: current charset.
+- Symfony adds the `app` global variable which enables access to e.g. the user, the environment
+  and the request.
+- Custom global variables can be configured by setting `twig: globals: foo: bar` in the config.yml file.
+- The value can also be a service; set the service ID as value, prefixed with an "@".
+
+https://symfony.com/doc/current/templating/global_variables.html
+
+https://symfony.com/doc/current/reference/twig_reference.html#app
 
 Filters and functions
 ---------------------
