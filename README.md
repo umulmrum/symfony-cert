@@ -723,40 +723,120 @@ https://symfony.com/doc/current/components/http_foundation.html#response
 The cookies
 -----------
 
+Cookies can be set on the response, using $response->headers->setCookie().
+By default a cookie is set to HTTP-only and can thus not be used in JavaScript on the client
+side. This can be changed through the constructor of the cookie.
+
+https://symfony.com/doc/current/components/http_foundation.html#setting-cookies
+
+http://api.symfony.com/3.2/Symfony/Component/HttpFoundation/Cookie.html#method___construct
+
 The session
 -----------
 
+The session can be accessed in two ways:
+
+- from the request object, using $request->getSession()
+- by injecting the `session` service (or accessing it using an injected container instance, 
+  such as in the base controller class).
+
+Note: There is ongoing discussion on the session being a service, as it is - like the request -
+a data object. Maybe the session service will be removed in the future. From Symfony 3.3 on,
+the session object can be injected into a controller the same way as the request.
+
 https://symfony.com/doc/current/components/http_foundation/sessions.html
+
+https://github.com/symfony/symfony/issues/10557
 
 The flash messages
 ------------------
 
+Flash messages are messages displayed to the user. These messages are displayed exactly once and
+"survive" a redirect so that they can be displayed after a POST + redirect request, which is why 
+they are saved in the session.
+
+Flash messages can be added by calling $session->getFlashBag()->add(). The base controller has
+a shortcut method addFlash(). Note that the `SessionInterface` does not provide the addFlash()
+method, so it is currently required to rely on the implementation class `Session` instead.
+
+Flash messages can be read from the flash bag using the get()/getAll() methods from the flash bag,
+which will also delete the messages, or using peek()/peekAll() to return the messages without
+deleting them. They can also be read from Twig templates (see example under the link below).
+
+https://symfony.com/doc/current/controller.html#flash-messages
+
 HTTP redirects
 --------------
+
+A request can be redirected by returning a `RedirectResponse` in the controller. It is possible
+to set the HTTP status code in the response's constructor.
+
+The base controller class also provides shortcut methods redirect() and redirectToRoute() which
+also return a `RedirectResponse`.
+
+https://symfony.com/doc/current/controller.html#redirecting
 
 Internal redirects
 ------------------
 
+A request can be redirected to another controller internally, which is called forwarding. 
+For this purpose the base controller provides the forward() method that creates a sub-request 
+based on the current request, setting the developer-provided controller.
+
+As this uses a sub-request, forwarding is purely internal and there are no consequences for
+the HTTP request.
+
+https://symfony.com/doc/current/controller/forwarding.html
+
 Generate 404 pages
 ------------------
+
+There are three ways to return a 404 status:
+
+- Return a response with this status code manually.
+- Throw a `NotFoundHttpException`. Symfony will catch the exception and return the 404 status.
+- When using the base controller, call createNotFoundException() which will create (but return,
+  not throw) the exception.
+
+https://symfony.com/doc/current/controller.html#managing-errors-and-404-pages
 
 File upload
 -----------
 
+https://symfony.com/doc/current/controller/upload_file.html
+
 Built-in internal controllers
 -----------------------------
+
+?
     
 Routing
 =======
 
+https://symfony.com/doc/current/components/routing.html
+
 Configuration (YAML, XML, PHP & annotations)
 --------------------------------------------
+
+https://symfony.com/doc/current/routing.html#routing-examples
 
 Restrict URL parameters
 -----------------------
 
+Using the `requirements` key, URL parameters can be restricted by regular expressions.
+
+Using the `schemes` key, a route can be restricted to a certain schme (HTTP, HTTPS).
+
+https://symfony.com/doc/current/routing.html#adding-wildcard-requirements
+
 Set default values to URL parameters
 ------------------------------------
+
+- Annotations: Set default value for argument of the annotated controller method.
+- YAML/XML: Set `defaults` key in the route definition.
+- PHP: Set value in the defaults array argument.
+
+https://symfony.com/doc/current/routing.html#giving-placeholders-a-default-value
 
 Generate URL parameters
 -----------------------
@@ -764,24 +844,72 @@ Generate URL parameters
 Trigger redirects
 -----------------
 
+Redirects can be triggered directly in the configuration file by specifying the
+FrameworkBundle:Redirect:redirect and :urlRedirect controllers.
+
+https://symfony.com/doc/current/routing/redirect_in_config.html
+
 Special internal routing attributes
 -----------------------------------
+
+- _controller: Specifies the controller to use.
+- _format: Specifies the request format (HTML, JSON, XML, ...).
+- _fragment: Specifies the #
+- _locale: Sets the request's locale (en, de, fr, ...).
+
+- _route: The matched route name. Is set automatically by the router.
+- _route_params: Parameters of the matched route. Is set automatically by the router.
+
+https://symfony.com/doc/current/routing.html#special-routing-parameters
 
 Domain name matching
 --------------------
 
+Using the `host` key, only allowing certain HTTP hosts is possible (placeholders may be used).
+
+https://symfony.com/doc/current/routing/hostname_pattern.html
+
 Conditional request matching
 ----------------------------
+
+Using the `condition` key, an expression following the expression syntax can be defined.
+
+https://symfony.com/doc/current/routing/conditions.html
 
 HTTP methods matching
 ---------------------
 
+Using the `methods` key, a route can be restricted to certain HTTP methods (GET, POST, ...).
+
+https://symfony.com/doc/current/routing/requirements.html#adding-http-method-requirements
+
 User's locale guessing
 ----------------------
 
+- URLs should contain a locale part if a route is available in multiple languages, so that every
+resource has a unique URL.
+- The _locale placeholder should be used if the language is set dynamically (otherwise _locale
+  can be set in the defaults key of the route) so that the translator gets automatically 
+  configured.
+- The request also provides a getPreferredLanguage() method that returns the first item of the
+  intersection of the user-defined accepted locales (defined in the browser settings and 
+  transmitted in the Accept-Language HTTP header) and the locales available in the application.
+- The locale can then be made sticky by registering an event listener for kernel.request (see
+  link below).
+
+
+https://symfony.com/doc/current/translation/locale.html#the-locale-and-the-url
+
+https://symfony.com/doc/current/session/locale_sticky_session.html
+
 Router debugging
 ----------------
-    
+
+- The console command debug:router can be used to print all registered routes.
+- The console command router:match can be used to test which route matches to a passed URL.
+
+https://symfony.com/doc/current/routing/debug.html
+
 Templating with Twig
 ====================
 
