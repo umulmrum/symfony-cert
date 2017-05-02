@@ -962,8 +962,13 @@ Global variables
   - _self: current template name.
   - _context: current context.
   - _charset: current charset.
-- Symfony adds the `app` global variable which enables access to e.g. the user, the environment
-  and the request.
+- Symfony adds the `app` global variable which itself contains variables for:
+  - debug
+  - environment
+  - request
+  - security
+  - session
+  - user
 - Custom global variables can be configured by setting `twig: globals: foo: bar` in the config.yml file.
 - The value can also be a service; set the service ID as value, prefixed with an "@".
 
@@ -974,8 +979,52 @@ https://symfony.com/doc/current/reference/twig_reference.html#app
 Filters and functions
 ---------------------
 
+- Filter are modifiers for variables or hard-coded values. They are applied by appending a pipe
+  "|" to the value to modify, followed by the filter name.
+- A filter may have further arguments. These are passed in brackets after the filter, resembling
+  a function call.
+- Functions are in form and syntax similar to PHP functions. A major difference is that when
+  calling a method with arguments, these arguments can optionally be named instead of relying
+  on the position. Example: foo(bar='baz).
+- Named arguments can also be applied to filters.
+- Besides built-in filters and functions, it is possible to define custom ones.
+  - Filters and standalone Twig: Instantiate a Twig_Filter object and call addFilter() on the
+    Twig_Environment.
+  - Filters and Symfony: Create a class that extends Twig_Extension. Let the getFilters() method
+    return an array of Twig_Filter objects. Register the extension in the dependency injection
+    container by creating a service for the extension and adding the tag twig.extension.
+  - Functions and standalone Twig: Instantiate a Twig_Function object and call addFunction() on the
+    Twig_Environment.
+  - Functions and Symfony: Like creating filters, but use getFunctions() instead of getFilters().
+    An extension can provide both filters and functions.
+
+https://twig.sensiolabs.org/doc/2.x/templates.html#filters
+
+https://twig.sensiolabs.org/doc/2.x/templates.html#functions
+
+https://twig.sensiolabs.org/doc/2.x/templates.html#named-arguments
+
+https://twig.sensiolabs.org/doc/1.x/filters/index.html
+
+https://twig.sensiolabs.org/doc/1.x/functions/index.html
+
+https://twig.sensiolabs.org/doc/2.x/advanced.html#filters
+
+https://symfony.com/doc/current/templating/twig_extension.html
+
 Template includes
 -----------------
+
+- The `include` tag includes and renders another template.
+- The included template can be given as string literal or expression.
+- It is possible to pass an array of template names. The first of these templates that exists
+  will be included.
+- By default, the included template has access to the complete context of the current template.
+- Additional variables can be passed as array using the `with` keyword.
+- To deny access to the current context, use the `only` keyword.
+- `with` and `only` can be combined.
+
+https://twig.sensiolabs.org/doc/1.x/tags/include.html
 
 Loops and conditions
 --------------------
@@ -1229,3 +1278,21 @@ Web Profiler and Web Debug Toolbar
 Internationalization and localization
 -------------------------------------
 
+
+
+
+
+
+
+
+_____________________________________
+
+
+Other Links
+===========
+
+https://leanpub.com/symfony-selfstudy
+
+https://github.com/jmolivas/symfony-certification-guide
+
+https://en.wikibooks.org/wiki/Symfony_3_Certification_Guide
