@@ -1029,6 +1029,57 @@ https://twig.sensiolabs.org/doc/1.x/tags/include.html
 Loops and conditions
 --------------------
 
+Loops:
+- Only the `for` tag is available for loops, no while.
+- Start a loop with `for` ... `in` ... `if` (if is optional), add an optional `else` and end the loop with `endfor`
+- The `if` keyword's right-hand side is executed within loop context and can therefore access
+  the current loop element. The special `loop` variable should not be used in the condition.
+- The `else` branch is executed if there are no elements to iterate over.
+- It is possible to iterate over any sequence, which is either:
+  - an array
+  - an object of a class implementing `Traversable`
+  - an explicit sequence using the `..` operator, e.g. 0..10 or 'a'..'z'
+  - an expression evaluating to one of the other possibilities.
+- In every loop, the special `loop` variable, which provides various loop properties,
+  is available (see the link below for details).
+- The properties `loop.length`, `loop.revindex`, `loop.revindex0` and `loop.last` rely on the
+  iteratee implementing `Countable` or being an array. Also they do not work for loops with
+  `if` conditions.
+- Loops are scoped in twig, so a variable declared with `set` will not be available outside the loop
+  (TODO this should mean that the current loop element is also unavailable after the end of the loop).
+- Loop execution can NOT be modified by break or continue. Use `if` to skip some elements that
+  do not match a condition.
+- Iterating over keys is possible by using the `keys` filter on the array. Keys can be accessed
+  by using the `for key, value in array` syntax.
+  
+https://twig.sensiolabs.org/doc/1.x/tags/for.html
+
+https://twig.sensiolabs.org/doc/1.x/tags/set.html
+
+Conditions:
+
+- `if` is similar to PHP's `if`.
+- The same wacky rules as for PHP's `==` operator apply to determine if a value is true-ish.
+- Strict comparisons (the equivalent of `===`) can be performed with the test `is same as`.
+- To check if a variable is defined, `if var is defined` can be used (important to distinguish
+  unset variables from those evaluating to false, e.g. if the variable contains 0).
+- Further possibilities in `if` tags are:
+  - comparisons (<, <, <=, ..., `starts with`, `ends with`, `matches` )
+  - containment (`in`, `not in`)
+  - test (see links below)
+
+https://twig.sensiolabs.org/doc/1.x/tags/if.html
+
+https://twig.sensiolabs.org/doc/1.x/tests/sameas.html
+
+https://twig.sensiolabs.org/doc/1.x/templates.html#comparisons
+
+https://twig.sensiolabs.org/doc/1.x/templates.html#containment-operator
+
+https://twig.sensiolabs.org/doc/1.x/templates.html#test-operator
+
+https://twig.sensiolabs.org/doc/1.x/tests/index.html
+
 URLs generation
 ---------------
 
