@@ -1083,20 +1083,103 @@ https://twig.sensiolabs.org/doc/1.x/tests/index.html
 URLs generation
 ---------------
 
+- The Symfony twig integration provides two functions for URL generation: 
+  - `path` generates a relative URL for a route
+  - `url` generates an absolute URL for a route
+- Custom twig extensions are defined in the twig bridge.
+- Links to assets are described below.
+- When generating URLs from the console, it is necessary to configure the request context
+  in order to let the console know of the base URL; either globally by parameters, or
+  by getting the context of the router and setting values there, e.g. to specify different
+  values for different controllers.
+
+https://symfony.com/doc/current/templating.html#linking-to-pages
+
+https://symfony.com/doc/current/console/request_context.html
+
 Controller rendering
 --------------------
+
+- To include the results of a controller in a template, use the render(controller('foo'))
+  syntax.
+- The controller must be given in the string syntax bundle:controller:action.
+
+https://symfony.com/doc/current/templating/embedding_controllers.html
 
 Translations and pluralization
 ------------------------------
 
+- Strings can be translated by using `trans` and `transchoice`, both of which are available
+  both as tag and as filter.
+- Difference between tag and filter: When using the filter, output escaping is applied 
+  automatically, but NOT when using the tag.
+- `trans` translates a simple strings using optional placeholders.
+- `transchoice` adds support for pluralization; different messages can be defined for different
+  amounts (discrete values or ranges).
+- A message domain can be passed by using the `from` keyword.
+- The target language can be passed by using the `into` keyword followed by the ISO 639-1 code
+  of the language.
+- A default translation domain for a template can be defined by adding the 
+  {% trans_default_domain "mydomain" %} tag to the template (will NOT be inherited by included
+  templates). 
+
+https://symfony.com/doc/current/translation.html#translations-in-templates
+
 String interpolation
 --------------------
+
+- Arbitrary expressions can be inserted into a double-quoted (!) string by using the 
+ `#{expression}` syntax. The result of the expression is inserted into the string.
+
+https://twig.sensiolabs.org/doc/2.x/templates.html#string-interpolation
 
 Assets management
 -----------------
 
+- Links to assets like images, CSS, JavaScript are generated using the `asset` function.
+- This generates a relative URL. Absolute URLs can be generated with `absolute_url(asset('foo.png))`
+- Best practice: Use template inheritance to add styles/scripts that are generally used 
+  throughout the application in a parent template, add styles/scripts that are used only 
+  in single templates in those templates. Use separate blocks for styles and for scripts
+  so that they can be extended separately. 
+- Symfony: Assets can be copied or symlinked to the web directory (or somewhere else) by 
+  using the console command `assets:install`. Assets will then by default be copied/symlinked
+  to web/bundles/bundlename; the assets need to be located in Resources/public in the bundle.
+- the bundlename in the previous bullet point is all-lower-case without a "bundle" prefix and
+  without underscores.
+- composer update and install will also copy/symlink assets if the script 
+  `ScriptHandler::installAssets` is set as post-update-cmd/post-install-cmd in composer.json.
+- There are framework configuration options to set a `base_path` (relative to the web root),
+  `base_urls` (absolute URLs, e.g. for a CDN), `version` (suffix for generated asset URLs,
+  to "clear" browser caches), `version_format` (sprintf format string that allows to define
+  a custom format for version string appending). Beginning with Symfony 3.1 there is also
+  a parameter `version_strategy`.
+- The framework configuration options can also be defined for multiple `packages`. These are
+  independent "buckets" of assets for which the aforementioned parameters can be set.
+
+
+https://symfony.com/doc/current/templating.html#linking-to-assets
+
+https://symfony.com/doc/current/templating.html#including-stylesheets-and-javascripts-in-twig
+
+https://symfony.com/doc/current/reference/configuration/framework.html#assets
+
 Debugging variables
 -------------------
+
+- Variables can be output for debugging purposes by using the `dump` function.
+- This function is not enabled by default, but needs to be activated by adding the extension
+  Twig_Extension_Debug.
+- When using the DebugBundle and the Symfony full-stack framework, the `dump` function will
+  be available automatically. 
+  - When calling {% dump(foo) %}, the content of foo will be dumped into the debug toolbar
+    in order to avoid markup modification.
+  - {{ dump(foo) }} will dump the content directly into the markup.
+- when NOT using xdebug, the `<pre>` HTML tag is recommended for better formatting.
+
+https://twig.sensiolabs.org/doc/2.x/functions/dump.html
+
+https://symfony.com/doc/3.0/components/var_dumper.html#debugbundle-and-twig-integration
 
 Forms
 =====
