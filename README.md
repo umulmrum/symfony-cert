@@ -1187,17 +1187,98 @@ Forms
 Forms creation
 --------------
 
+- Create a POPO class with getters and setters (or public properties if you don't mind ugly
+  code). This is the data model.
+- Create a form builder:
+  - With base controller: Call createFormBuilder($objectOfDataModelClass).
+  - With Dependency Injection: Inject form.factory and call createBuilder() on the instance.
+- Call add() on the form builder to add fields.
+- Call getForm() to build the actual form.
+
+This declares the form inline. It is recommended that a form type class is created instead so
+that the type can be reused and form logic is generally separated from controller code (see
+below).
+
+https://symfony.com/doc/current/forms.html#creating-a-simple-form
+
+https://symfony.com/doc/current/forms.html#building-the-form
+
 Forms handling
 --------------
+
+- Forms are by default submitted to the same URL they were rendered, but using the POST method.
+- So controllers normally handle both form creation and submission.
+- Call handleRequest() to process the form. On GET requests nothing will happen; on POST
+  requests, submitted data will be transferred to the data model object given at form creation;
+  additionally the form will be validated if submitted.
+- Check if data was submitted by using $form->isSubmitted() and $form->isValid(). If yes,
+  continue with form handling logic; if no, continue with form display logic.
+  
+Form validation actually validates the data model object linked to the form, not the form 
+itself. Define validation on the data model as described in the validation chapter below.
+
+https://symfony.com/doc/current/forms.html#handling-form-submissions
 
 Form types
 ----------
 
+- Create a class that extends AbstractType and override buildForm(). This method receives
+  an object implementing FormBuilderInterface on which the form can be built as directly
+  in the controller.
+- To apply this class, use one of these two ways:
+  - With base controller: Call createForm() and pass the class name of the new form type.
+  - With Dependency Injection: Inject form.factory and call create() on the instance,
+    also passing the class name of the new form type.
+
+https://symfony.com/doc/current/forms.html#creating-form-classes
+
 Forms rendering with Twig
 -------------------------
 
+In the controller, pass the result of $form->createView() to the template. This object can
+then be used to render the form in the template. There are a few helper functions. 
+
+Simple mode:
+
+- form_start() begins the form.
+- form_widget() renders the form elements.
+- form_end() finishes the form.
+
+Advanced mode:
+
+- form_errors() renders error messages encountered during form processing.
+- form_row(form.element) renders the label, input element error messages and the input element.
+
+Instead of using form_row() it is also possible to render all elements manually with these
+functions:
+
+- form_label(form.element)
+- form_errors(form.element)
+- form_widget(form.element)
+
+To access individual values of an element, use this syntax:
+
+form.element.vars.value
+
+https://symfony.com/doc/current/forms.html#rendering-the-form
+
+https://symfony.com/doc/current/form/rendering.html
+
+https://symfony.com/doc/current/reference/forms/twig_reference.html
+
 Forms theming
 -------------
+
+- Forms are rendered using Twig templates.
+- In these templates there are blocks that render the fragments of the form.
+- Override the templates and modify the blocks to change the form theme.
+- To apply this theme, 
+  - either add the tag `form_theme` to the top of the template rendering the form.
+  - or set "twig: form_themes: " in the config.yml in order to set the form globally.
+- Blocks not overridden will be taken from the default theme.
+- Read the link below for much more details.
+
+https://symfony.com/doc/current/form/form_themes.html
 
 CSRF protection
 ---------------
