@@ -1242,7 +1242,9 @@ Simple mode:
 
 - form_start() begins the form.
 - form_widget() renders the form elements.
-- form_end() finishes the form.
+- form_end() finishes the form (renders the </form> tag as well as rendering all remaining
+  form elements that were not rendered manually yet, including the CSRF token (see the
+  CSRF protection section below)).
 
 Advanced mode:
 
@@ -1283,8 +1285,52 @@ https://symfony.com/doc/current/form/form_themes.html
 CSRF protection
 ---------------
 
+- With CSRF an attacker exploits that a user is logged into a system and can therefore 
+  unknowingly execute privileged actions that are beneficial for the attacker and/or 
+  non-beneficial for the victim. For this purpose the attacker introduces a link to the
+  HTML markup that the victim's client then calls, e.g. in an image source attribute.
+- The Form component automatically protects from CSRF attacks by adding a CSRF token in
+  all forms.
+- The CSRF token is saved in the session and rendered as hidden field `_token` into the 
+  form when `form_end()` is called.
+- The token prevents attackers from rebuilding the form and tricking the user into 
+  submitting, because the CSRF token is unknown outside the application.
+- The token can be disabled by setting the form option `csrf_protection` to false. This
+  can be done in the `configureOptions()` method of the form type.
+- Further CSRF options are `csrf_field_name` (name of the token in the rendered form) and
+  `csrf_token_id` (which allows to create a different CSRF token for every form type).
+- When using a cache, care must be taken in that the token is not cached across users
+  as token validation will else fail for all users but the first.
+  - Use ESI fragments the exempt the forms from caching.
+  - Load the form via uncached Ajax.
+  - Load just the token via Ajax and set/replace the value in the form.
+- To protect against CSRF without using the session, solutions like Double Submit Cookie,
+  Encrypted Token Pattern or Custom Request Headers can be used (see the link to OWASP
+  below for details and drawbacks).
+
+https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
+
+https://symfony.com/doc/current/form/csrf_protection.html
+
+https://symfony.com/doc/current/http_cache/form_csrf_caching.html
+
+https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet
+
 Handling file upload
 --------------------
+
+- Add a field of FileType type to the form type (and a corresponding property to the data
+  model). Render the field as any other type.
+- Handle the form in the controller and the property of the data model will be populated
+  with an object of type `UploadedFile`.
+- This file should be moved to a custom directory by using the `move()` method on the file.
+- Security best practice: Determine the file extension by calling `guessExtension()` method
+  on the file, which will guess based on the MIME type instead of the user-provided extension
+  which could be spoofed.
+- Security best practive: Give the file a custom/random file name instead of the original one
+  which could be crafted by an attacker (or apply proper sanitation).
+
+https://symfony.com/doc/3.0/controller/upload_file.html
 
 Built-in form types
 -------------------
