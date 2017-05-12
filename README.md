@@ -645,6 +645,10 @@ processConfiguration() method of the extension. Extensions may choose another re
 though, as processConfiguration() needs to be called manually and the extension receives
 all values in an array of arrays.
 
+A shortcut for implementing `load()` and calling `processConfiguration()` is to derive
+the extension from `ConfiguratbleExtension` which provides the `loadInternal()` method.
+This method receives the merged configuration.
+
 A bundle can prepend configuration for another bundle so that it acts as default value
 provider if config values are not set for the other bundle. To do this, the extension
 needs so implement the PrependExtensionInterface and provide the config in the prepend()
@@ -1597,9 +1601,9 @@ Service container
 
 https://en.wikipedia.org/wiki/Dependency_injection
 
-https://symfony.com/doc/current/service_container.html
+https://symfony.com/doc/3.0/service_container.html
 
-https://symfony.com/doc/current/service_container/injection_types.html
+https://symfony.com/doc/3.0/service_container/injection_types.html
 
 https://symfony.com/doc/3.0/service_container/optional_dependencies.html
 
@@ -1617,7 +1621,11 @@ Built-in services
 -----------------
 
 Use the console command debug:container on a new Symfony project to get a list of all
-built-in services.
+built-in services (when providing the option `--show-private`, private services will
+be displayed, except those that are only injected into a single service, because the
+definition will be inlined in the compiled container and the definition removed).
+
+https://symfony.com/doc/3.0/service_container/debug.html
 
 Configuration parameters
 ------------------------
@@ -1656,22 +1664,63 @@ https://symfony.com/doc/3.0/service_container/tags.html
 Semantic configuration
 ----------------------
 
+- By default there is an /app/Resources/services.yml file in which services for the 
+  application are defined. This file is imported in the config.yml file which itself is 
+  imported in conf_<env>.yml which is loaded in the AppKernel.
+- How to define services in a bundle is already described in the "Bundles" chapter of this
+  document.
 
+https://symfony.com/doc/3.0/bundles/extension.html
 
-
+https://symfony.com/doc/3.0/bundles/configuration.html
 
 Factories
 ---------
 
-
+- To programmatically create a service instance, a call to factory can be defined instead
+  of relying solely on static container configuration.
+- A factory can be either a static method of a class or a method of another service defined
+  in the service container.
+- Syntax (XML): Tag `factory`, attributes `class` or `service` and `method`.
+- If a factory is defined for a service, the configured `class` value is ignored - only the
+  factory return value is relevant. It is nevertheless recommended to set a sensible value
+  as compiler passes may rely on this information.
+- `argument`s will be passed to the factory instead of being applied to the service 
+  definition itself.
 
 https://symfony.com/doc/3.0/service_container/factories.html
 
 Compiler passes
 ---------------
 
+Compiler passes are already described in the "Bundles" chapter of this document.
+
 Services autowiring
 -------------------
+
+- With autowiring the service container can be instructed to automatically resolve
+  dependencies for a service so that they do not need to be specified manually, thus
+  saving time for rapid prototyping.
+- In the constructor of a class to be defined as autowired service, declare the types of
+  dependencies in order to allow the service container compiler to discover which services
+  to inject.
+- In the service definition, set the property `autowired` = true.
+- If there is only one service definition for the dependency, the container will automatically
+  determine that this service is to be injected.
+- This also works when an interface is type-hinted instead of a concrete class.
+- If there is no service definition for the dependency, the container automatically creates
+  a private service for the class. This does not work for interfaces.
+- If there are multiple implementations of an interface, it is required that a default
+  implementation is specified. Define a service for the implementation and provide the
+  `autowiring_types` property, setting the interface for which this implementation is the
+  default. If this isn't done, a RuntimeException will be thrown because of the ambiguous
+  resolution. Note that `autowiring_types` is deprecated as of Symfony 3.3.
+
+- Autowiring should not be used in public bundles or complex projects.
+
+https://symfony.com/doc/2.8/service_container/autowiring.html
+
+https://symfony.com/blog/new-in-symfony-3-3-deprecated-the-autowiring-types
 
 Security
 ========
