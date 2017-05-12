@@ -1417,23 +1417,94 @@ Data Validation
 PHP object validation
 ---------------------
 
+- Any object can be validated. Normally data model classes are validated.
+- Validation can be applied to classes, class properties or methods (getters).
+  Not all constraints support all of these types, though. Constraint classes can override
+  the `getTargets()` method of the base `Constraint` class to define valid targets.
+- Properties either need to be public or have public getters that follow the naming
+  convention of beginning with get, is, has followed by the property name (CamelCase).
+- Validation rules can be defined either using annotations in the validated class,
+  a `validation.yml` or `validation.xml` file located in the `Resources/config`directory
+  of a bundle or by implementing a public static method named `loadValidatorMetadata()`.
+- When defining validation rules in separate files, a rules for a method is defined using
+  a hypothetical property name that method is a getter of (so no "get" prefix).
+- It is also possible to validate a raw value programmatically without any configuration.
+  Get the `validator` service and call the `validate()` method, passing the value to
+  validate and the constraint. This will return a `ConstraintViolationList` object.
+
+https://symfony.com/doc/3.0/validation.html
+
+https://symfony.com/doc/3.0/validation/raw_values.html
+
 Built-in validation constraints
 -------------------------------
+
+https://symfony.com/doc/3.0/validation.html#supported-constraints
 
 Validation scopes
 -----------------
 
+Looks like this means constraint targets which are already described above.
+
 Validation groups
 -----------------
+
+- For every validation rule, an optional list of validation groups can be defined.
+- When executing the validation, a list of validation groups can be passed. Only
+  validation rules in these groups will be applied (a single matching group suffices).
+- Validation rules without an explicit group declaration are always part of the `Default`
+  group. Rules are also part of this group if they are part of a group named like the
+  class name or a group explicitly named `Default`.
+- There is always a group named like the class (NOT fully qualified?). This group is
+  similar to the `Default` group, but differs if the class contains embedded objects.
+  See the docs for an explanation (first link below).
+- Which validation groups to use can be determined dynamically by creating a class with
+  an `__invoke()` method that accepts a `FormInterface` as only parameter and passing an
+  instance of this class to the `OptionsResolver` in the `FormType`'s `configureOptions()`
+  method (method `setDefaults()`, key `validation_groups`).
+
+https://symfony.com/doc/3.0/validation/groups.html
+
+https://symfony.com/doc/3.0/validation/group_service_resolver.html
 
 Group sequence
 --------------
 
+- Validation groups can be applied sequentially to avoid overwhelming the user with
+  error messages. Define a group sequence, listing the validation groups in the order
+  in which they should be applied (see the link below for the exact syntax).
+  Only if all constraints in a group are valid, the next group is validated.
+- In a group sequence the `Default` group refers to the group sequence, not to all
+  constraints without a group. This may lead to infinite recursion if the `Default`
+  group is defined as part of the group sequence itself.
+- A group sequence can also be defined dynamically. The validated class needs to implement
+  `GroupSequenceProviderInterface` and its `getGroupSequence()` method which returns a list
+  of validation groups. The class then also needs to be marked as supporting the group
+  sequence provider (see link below).
+
+https://symfony.com/doc/3.0/validation/sequence_provider.html
+
 Custom callback validators
 --------------------------
 
+- Use the built-in `Callback` constraint on a public method that expects a
+  `ExecutionContextInterface` parameter.
+- Call `buildViolation()` on the execution context to add a validation error determined
+  through the custom logic.
+- It is also possible to define this method as static. Then it will be passed the object
+  to validate as first argument. Don't know why anyone should want to use this, but it's
+  there :-)
+- A PHP callable can be configured so that validation can take place outside the class
+  to validate. This must be a static method the interface of which is the same as in the
+  case before. It is not possible to pass a service method or a global function.
+  When configured via PHP, it is possible to pass a closure.
+
+https://symfony.com/doc/3.0/reference/constraints/Callback.html
+
 Violations builder
 ------------------
+
+TODO
     
 Dependency Injection
 ====================
