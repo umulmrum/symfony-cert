@@ -1335,14 +1335,81 @@ https://symfony.com/doc/3.0/controller/upload_file.html
 Built-in form types
 -------------------
 
+https://symfony.com/doc/3.0/reference/forms/types.html
+
 Data transformers
 -----------------
+
+- There are two types of data transformers: Model transformers and view transformers.
+  I haven't yet understood when to use which transformer, maybe you have better luck
+  looking at the docs :-)
+- Data transformers translate values from an internal object representation to an
+  HTML-renderable string and back, e.g. translates between a DateTime object and a
+  string in yyyy-MM-dd format.
+- A data transformer is attached to a form field in the `buildForm()` method by calling
+  `$builder->get('elementName')->addModelTransformer($transformer)`, where $builder is
+  the method's `FormBuilderInterface` object and $transformer is an object of a class
+  implementing `DataTransformerInterface`.
+- The `CallbackTransformer` is an implementation of `DataTransformerInterface` that
+  takes custom callback functions for `transform()` and `reverseTransform()`.
+
+https://symfony.com/doc/current/form/data_transformers.html
 
 Form events
 -----------
 
+- Form events can be used to react to certain steps during the processing of a submitted
+  form.
+- The form component uses the Symfony event dispatcher component to handle form events
+  (event dispatcher is generally required by form).
+- The lifecycle of a submitted form looks like this:
+  - New form.
+  - FormEvents::PRE_SET_DATA is dispatched.
+  - `setData()` is executed.
+  - FormEvents::POST_SET_DATA is dispatched.
+  - FormEvents::PRE_SUBMIT is dispatched.
+  - `submit()` is executed and FormEvents::SUBMIT is dispatched.
+  - FormEvents::POST_SUBMIT is dispatched.
+- Details on this process should be looked up in the documentation (see link below).
+- Form events are attached using the method `addEventListener()` on the form builder.
+- Alternatively an event subscriber can be attached by calling `addEventSubscriber()` on
+  the form builder.
+- Form events only affect the current instance of a form type, while code in the form type
+  itself affects all instances; this could be important if there are multiple forms or
+  fields of the same type on a single request.
+
+https://symfony.com/doc/3.0/form/events.html
+
+https://symfony.com/doc/3.0/form/dynamic_form_modification.html
+
 Form type extensions
 --------------------
+
+- Form type extensions extend an existing form type. 
+- They influence both the selected form type and all types that extend this form type
+  (e.g. the built-in TextType is the parent class of EmailType, SearchType and others,
+  which will also be affected by an extension to TextType). Form type extensions for
+  FormType and ButtonType will affect almost all types.
+- A form type extension is a class that extends `AbstractTypeExtension` or implements
+  `FormTypeExtensionInterface`. The class must implement the `getExtendedType()` method
+  that returns the fully qualified class name of the form type to extend.
+- The following methods can be overridden/implemented. They are called at the end of
+  their counterparts in the form type (e.g. `buildForm()` of the extension will be called
+  at the end of the form type's `buildForm()` method), so the extension has access to
+  the results of the basic methods.
+  - buildForm()
+  - buildView()
+  - finishView()
+  - configureOptions()
+- To enable the extension, register it as a service and apply the tag `form.type_extension`.
+- When changing how the form field is displayed, it will be necessary to override the
+  respective template fragments (see templating chapter).
+
+https://symfony.com/doc/3.0/form/create_form_type_extension.html
+
+https://symfony.com/doc/current/form/data_transformers.html#creating-a-reusable-issue-selector-field
+
+https://symfony.com/doc/current/form/create_custom_field_type.html
     
 Data Validation
 ===============
