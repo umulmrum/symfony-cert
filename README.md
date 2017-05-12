@@ -1512,30 +1512,167 @@ Dependency Injection
 Service container
 -----------------
 
+- A service is a simple PHP class which is additionally referenced in service configuration 
+  in XML, YAML or PHP format.
+- A service definition consists basically of an `id` and a declaration of the `class` 
+  implementing that service.
+- The service container holds all services defined in the application.
+- Services can be retrieved from the container directly by using the `get()` method on the
+  container instance (service locator pattern, often regarded as anti-pattern) or by 
+  injecting them into other services.
+- Injecting is done in the service definition. Either add an `argument` to the service that 
+  should get the dependency injected, so that this service will be passed as constructor 
+  argument. Or declare a method `call` on a setter. Using constructor injection makes sure
+  that the service can't be instantiated without all dependencies given and that these
+  dependencies aren't changed during the request. Using setter injection allows for optional
+  dependencies.
+- It is also possible to inject directly into public properties with `property` declarations,
+  but .. no.
+- If a service that is injected does not exist, a `ServiceNotFoundException` will be thrown.
+  This behavior can be adjusted by setting the `on-invalid` parameter on the argument to
+  either `null` (not when using YAML for configs) or `ignore`. These values are identical
+  when used for `argument`s in that a null value is injected. When used for `call`s, `null`
+  will inject a null value, while `ignore` will remove the method call when the service ID is
+  invalid.
+- Controllers as entry points for business code either get services injected or extend the
+  base controller class and do then automatically have a container instance available.
+- When using the full-stack framework, the service container is automatically dumped into PHP
+  code, so that the heavy compile process does not need to take place on every request. The
+  compiled container is a class loaded at the beginning of the request.
+- Service instantiation is lazy. A service is only constructed when it is used.
+- When a service is instantiated, all services passed as constructor arguments are 
+  instantiated as well (and their arguments and so on, creating the whole dependency graph).
+- To avoid building the complete dependency graph (with a possible performance impact which
+  might not be worthwhile if the heavy service isn't always used), services can be marked 
+  as `lazy`. Then the instantiation of services passed as constructor arguments will only 
+  take place when those injected services are used for the first time. 
+  Proxy objects will be injected then, which will "resolve" to the actual objects when used. 
+  This requires installing an additional library ocramius/proxy-manager (if not using the
+  full-stack framework, symfony-proxy-manager-bridge is also required). It is generally 
+  recommended to avoid doing a lot of work in constructors.
+- Services are normally only instantiated once. Further uses of the service receive the same
+  instance so that instantiation and initialization work only need to be done once per 
+  request. Therefore services should be regarded as immutable after instantiation (do not 
+  modify internal state during regular usage).
+- To receive a new service instance on each call, define it with the parameter 
+  `shared` = false. This is "infective": Non-shared services can only be injected into other
+  non-shared services.
+- By default services are public and can be retrieved by the container's `get()` method.
+  To avoid this, mark them as private by setting the property `public` = false. If the
+  service is only injected once, the service will be inlined into the container and the
+  definition removed. If it is injected more than once, the service will behave like a
+  public service and can be retrieved with `get()`. In later Symfony versions private 
+  services will be truly private.
+- Aliases allow to refer to services under other names (e.g. for shortcuts or maintain
+  backward compatibility). Use the `alias` property to reference the original service.
+- Services can be marked as deprecated using the `deprecated` property. The property value
+  needs to be a message that is displayed as warning when that service is used. The parameter
+  %service_id% must be used in that message.
+- For a list of registered services, execute the console command `debug:container`.
+- Services can be decorated by other services by using the `decorates` property which 
+  needs to reference the original service. The decorator service will then completely replace
+  the original service and is registered under the same name. The original service can be
+  injected into the decorator by using a special service ID that is the same as the 
+  decorator + `.inner`.
+  If multiple decorators are defined for a service, the order will be dependent on the order
+  in which the bundles are registered. The order can be set explicitly by adding a 
+  `decoration_priority` property.
+  The service's implementation should also implement the decorator pattern.
+- Parent services can be defined to declare common dependencies for multiple services.
+  Use the `parent` property. The service with this property will then inherit all settings
+  but shared, abstract and tags. The implementations may have an inheritance relation but
+  this is not required as long as e.g. called methods with the same name exist. Dependencies
+  of the parent service can be overridden by adding another argument and specifying the
+  index of the argument to override.
+- A service can be declared as `abstract` to avoid instantiating. This can make sense for
+  base services only intended to serve as parent for other services. No `class` needs to
+  be provided for abstract services.
+- Synthetic services are services that are constructed during runtime instead of container
+  compile time. For these services, a stub service is defined in the service configuration,
+  using the `synthetic` = true property, so that other service definitions depending on the 
+  synthetic service will not cause errors during container compilation. The synthetic service
+  is injected into the container by calling the `set()` method on the container instance.
+  When the service (or another service depending on this one) is used before it was 
+  constructed, a `RuntimeException` is thrown.
+
+https://en.wikipedia.org/wiki/Dependency_injection
+
+https://symfony.com/doc/current/service_container.html
+
+https://symfony.com/doc/current/service_container/injection_types.html
+
+https://symfony.com/doc/3.0/service_container/optional_dependencies.html
+
+https://symfony.com/doc/3.0/service_container/alias_private.html
+
+https://symfony.com/doc/3.0/service_container/lazy_services.html
+
+https://symfony.com/doc/3.0/service_container/service_decoration.html
+
+https://symfony.com/doc/3.0/service_container/parent_services.html
+
+https://symfony.com/doc/3.0/service_container/synthetic_services.html
+
 Built-in services
 -----------------
+
+Use the console command debug:container on a new Symfony project to get a list of all
+built-in services.
 
 Configuration parameters
 ------------------------
 
+- Besides services, parameters can also be defined for the service container. Parameters
+  are simple key-value associations that can be injected into services. Use the `parameters`
+  section in a config file to define parameters. They can be accessed via %parameter_name% (
+  so the % is reserved at the beginning of a string in the configuration. Use %% to escape
+  the percent character).
+- Parameters can also be retrieved from the service container using the `getParameter()`
+  method.
+
+https://symfony.com/doc/3.0/service_container/parameters.html
+
 Services registration
 ---------------------
+
+See above.
 
 Tags
 ----
 
+- A tag is a special marker for a service declaration that indicates that the service has
+  a special meaning during configuration.
+- A compiler pass (see below) can get a list of all services tagged with a specific tag
+  (by calling `findTaggedServiceIds()` on the provided service container instance) and e.g. 
+  inject the service collection into another services. This way, decoupled and distributed 
+  definition of a service list is possible.
+- Tags always have a `name` and can optionally have additional properties. Apart from the
+  name, no properties have a special meaning and can be used by the compiler pass in any
+  way. The name itself is only a string that identifies the tag. There is no registry of
+  tags; by defining a name, the tag is defined.
+
+https://symfony.com/doc/3.0/service_container/tags.html
+
 Semantic configuration
 ----------------------
 
+
+
+
+
 Factories
 ---------
+
+
+
+https://symfony.com/doc/3.0/service_container/factories.html
 
 Compiler passes
 ---------------
 
 Services autowiring
 -------------------
-    
+
 Security
 ========
 
@@ -1695,3 +1832,5 @@ https://leanpub.com/symfony-selfstudy
 https://github.com/jmolivas/symfony-certification-guide
 
 https://en.wikibooks.org/wiki/Symfony_3_Certification_Guide
+
+https://trello.com/c/aHnP3WUI/1-learn-for-symfony-certification
