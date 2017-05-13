@@ -1728,23 +1728,112 @@ Security
 Authentication
 --------------
 
+- Authentication is the process of identifying who the user is.
+
+https://symfony.com/doc/3.0/security.html
+
 Authorization
 -------------
+
+- Authorization is the process of determining what a user (who is known after authentication)
+ is allowed to do.
+
+https://symfony.com/doc/3.0/security.html
 
 Configuration
 -------------
 
+- Security is provided by the `SecurityBundle`, to the bundle alias and therefore the
+  configuration key is `security`. Normally security is configured in a separate config file
+  named `security.yml`/`security.xml`.
+
+https://symfony.com/doc/3.0/security.html
+
 Providers
 ---------
+
+- A user provider is the source of user login data.
+- Built-in user providers are:
+  - `memory`: Users are directly configured in the configuration file.
+  - `entity`: Users are loaded from a database via Doctrine.
+  - `ldap`: Users are loaded via LDAP.
+  - `chain`: Allows to combine multiple user providers, e.g. to define some users
+    in the configuration and fetch others from the database.
+- Custom providers can also be implemented.
+
+https://symfony.com/doc/3.0/security.html#b-configuring-how-users-are-loaded
+
+https://symfony.com/doc/3.0/security/entity_provider.html
+
+https://symfony.com/doc/3.0/security/multiple_user_providers.html
+
+https://symfony.com/doc/3.0/security/custom_provider.html
 
 Firewalls
 ---------
 
+- A firewall defines how users authenticate. This can be any type of HTTP-based 
+  authentication like basic authentication, password, OAuth, ...
+- For every authentication type there is a config key:
+  - `anonymous` if anonymous access is allowed.
+  - `x509`
+  - `remote_user`
+  - `http_basic`
+  - `http_basic_ldap`
+  - `http_digest`
+  - `guard`
+  - `form_login`
+  - `form_login_ldap`
+- It is also possible to create a custom authentication type (which is according to the
+  docs quite hard and is normally better avoided if possible).
+- Multiple firewalls can be configured. Restrictions can be defined for a firewall. The 
+  security system will check all firewalls from top to bottom and the first applicable
+  firewall is used for this request.
+- Possible restrictions are:
+  - pattern: A regex which the request URL needs to match.
+  - host: A regex which the host/domain part of the request URL needs to match.
+  - methods: An array of HTTP methods the request method needs to match (most common are
+    GET and POST).
+- TODO what happens if no firewall matches?
+- A firewall can be deactivated with the key `security` = false. This should be combined
+  with restrictions, e.g. to grant access to debug toolbar resources or assets to all users. 
+- A firewall can be configured to use a specific user provider by setting the `provider`
+  key. Unless this is done, the first user provider in the list of providers will be used. 
+
+https://symfony.com/doc/3.0/security.html#a-configuring-how-your-users-will-authenticate
+
+https://symfony.com/doc/3.0/security/firewall_restriction.html
+
+https://symfony.com/doc/3.0/reference/configuration/security.html
+
 Users
 -----
 
+
+- It is not possible to access users during routing as routing is handled before security.
+  Also it is not possible to restrict 404 pages.
+
+
 Passwords encoders
 ------------------
+
+- Encoders are misnamed password hashing classes.
+- An encoder is defined in the `encoders` configuration key. Allowed values depend partially
+  on the used PHP version, but supported values are normally `plaintext`, `sha512`, `pbkdf2`,
+  `bcrypt`. The currently (May 2017) recommended algorithm is `bcrypt`.
+- To manually hash a password, e.g. for saving the user in a database, inject the service
+  `security.password_encoder` and call `encodePassword()`, passing the user object and the
+  plain password. The password encoder will select the correct password hashing algorithm
+  based on the user class.
+- The plain password must not be longer than 4096 characters in order to avoid possible
+  denial-of-service attacks (the hashing cost increases significantly with the plaintext
+  length for most hashing algorithms).
+- A password for in-memory users can be hashed using the console command 
+  `security:encode-password`.
+
+https://symfony.com/doc/3.0/security/password_encoding.html
+
+https://symfony.com/blog/cve-2013-5750-security-issue-in-fosuserbundle-login-form
 
 Roles
 -----
