@@ -1729,6 +1729,8 @@ Authentication
 --------------
 
 - Authentication is the process of identifying who the user is.
+- The user storage is represented by one or more user providers.
+- User passwords should always be hashed. This is done by encoders.
 
 https://symfony.com/doc/3.0/security.html
 
@@ -1736,7 +1738,13 @@ Authorization
 -------------
 
 - Authorization is the process of determining what a user (who is known after authentication)
- is allowed to do.
+  is allowed to do.
+- Authorization rules are given by access control rules based on the request URI so that sections
+  of the site can be protected.
+- Authorization can also be checked programmatically by calling the `isGranted()` method on the 
+  implementation of `AuthorizationCheckerInterface` received by injecting `security.authorization_checker`.
+  The base controller class has a shortcut `isGranted()` for this method.
+- There is also an `is_granted()` Twig function to check access in templates.
 
 https://symfony.com/doc/3.0/security.html
 
@@ -1746,6 +1754,8 @@ Configuration
 - Security is provided by the `SecurityBundle`, to the bundle alias and therefore the
   configuration key is `security`. Normally security is configured in a separate config file
   named `security.yml`/`security.xml`.
+- There's a lot that can be configured in the security context. Some of these configuration options
+  are described below, but have a look at the docs in any case.
 
 https://symfony.com/doc/3.0/security.html
 
@@ -1759,7 +1769,12 @@ Providers
   - `ldap`: Users are loaded via LDAP.
   - `chain`: Allows to combine multiple user providers, e.g. to define some users
     in the configuration and fetch others from the database.
-- Custom providers can also be implemented.
+- Providers are configured under the `providers` key. Every provider to be used should be added as
+  named array key with its configuration under that key.
+- Custom providers can also be implemented (see link below). Short story: Create a class that implements
+  `UserProviderInterface` and define a service for this class. In the firewall configuration (see below),
+  add a provider with a custom name under  `providers` and for this provider set the `id` key to the
+  new service.
 
 https://symfony.com/doc/3.0/security.html#b-configuring-how-users-are-loaded
 
@@ -1809,10 +1824,35 @@ https://symfony.com/doc/3.0/reference/configuration/security.html
 Users
 -----
 
-
+- Users are represented by a user class that implements either `UserInterface` or 
+  `AdvancedUserInterface`.
+- `UserInterface` contains these methods:
+  - `getRoles()` - returns all roles granted to the user.
+  - `getPassword()` - returns the hashed password.
+  - `getSalt()` - returns the salt used to hash the password. May be null if the used hashing
+    algorithm handles salt internally, such as bcrypt.
+  - `getUsername()` - returns the username used as login name.
+  - `eraseCredentials()` - removes sensitive data from the object. Implementations should delete
+    critical data such as the plaintext password from the user object in this method.
+- `AdvancedUserInterface` extends `UserInterface` and adds some possibilities to block login for
+  different reasons. This allows for fine-grained ways of controlling authentication, including
+  different messages displayed to the user on authentication failuer. Methods specified by this 
+  interface are:
+  - `isAccountNonExpired()` - if this method returns false, the authentication system will throw
+    an `AccountExpiredException` on a login attempt.
+  - `isAccountNonLocked()` - if this method returns false, the authentication system will throw
+    a `LockedException` on a login attempt.
+  - `isCredentialsNonExpired()` - if this method returns false, the authentication system will throw
+    a `CredentialsExpiredException` on a login attempt.
+  - `isEnabled()` - if this method returns false, the authentication system will throw
+    a `DisabledException` on a login attempt.
+- The user object must be serializable/unserializable so that it can be saved in the session.
+- On login, the user object is serialized into the session. On every request, the ID is taken from that
+  user to get a fresh user object from the database.
 - It is not possible to access users during routing as routing is handled before security.
   Also it is not possible to restrict 404 pages.
 
+https://symfony.com/doc/3.0/security.html
 
 Passwords encoders
 ------------------
@@ -1838,15 +1878,108 @@ https://symfony.com/blog/cve-2013-5750-security-issue-in-fosuserbundle-login-for
 Roles
 -----
 
+- Roles are simple strings that set groups of permissions for a user.
+- A role name must always begin with the prefix `ROLE_`.
+- A user's role is acquired by the security system by calling the `getRoles()` method on the user
+  object (implementing `UserInterface`) after login. The roles need to be persisted along with the other
+  user data.
+- To limit the number of roles that need to be assigned to a user, inheritance rules for roles can be 
+  defined under the `role_hierarchy` key of the `security` configuration. For example, a ROLE_SUPER_ADMIN
+  can contain the ROLE_ADMIN, so that a super admin only needs the first role and gains the second one
+  automatically.
+- There are three role-like entities that can be used to check if a user is logged in:
+  - IS_AUTHENTICATED_REMEMBERED is set on a user if she is logged in, either directly or with a remember-me
+    functionality.
+  - IS_AUTHENTICATED_FULLY is set on a user if she is logged in directly, but not if she is only remembered.
+    This can be used to force re-authentication on critical operations.
+  - IS_AUTHENTICATED_ANONYMOUSLY is set on all users, regardless of login state.
+  
+https://symfony.com/doc/3.0/security.html#roles
+
+https://symfony.com/doc/3.0/security.html#checking-to-see-if-a-user-is-logged-in-is-authenticated-fully
+
 Access Control Rules
 --------------------
+
+- Access control rules are a list of rules that define which roles a user need to have to access a certain
+  section of the site. For example, a "^/admin" section could be restricted to users with ROLE_ADMIN.
+- Matching options are:
+  - `path`: Regex to match the path of the current request URL against.
+  - `ip`/`ips`: IP address of the client needs to match given IP addresses.
+  - `host`: Regex to match the domain part of the current request URL against.
+  - `methods`: A list of HTTP methods, e.g. GET and POST.
+- Symfony will check all rules from top to bottom and apply the first one whose pattern matches the current
+  request URL.
+- After a rule matched, it is checked if the user has access to the section. For this, the following 
+  attributes can be configured:
+  - `roles`: A list of roles the user needs to have to gain access. If this condition is not fulfilled,
+    an `AccessDeniedException` will be thrown which normally redirects the request to a login form (if
+    the user is already logged in, an access-denied page will be displayed).
+  - `allow_if`: An expression that allows access only if it evaluates to true.
+  - `requires_channel`: If set to e.g. `https`, the request will only be allowed if the request is an
+    HTTPS request. Otherwise it will be redirected to the corresponding HTTPS URL. Alternatively this can 
+    be specified in the routing configuration.
+- To block access for all users, set the `roles` attribute to a non-existing role such as ROLE_NO_ACCESS.
+  This can be used e.g. to restrict access to certain client IP addresses: Add a rule for with `ip` matching
+  option and a second one with ROLE_NO_ACCESS. The first rule will allow access to all users from the
+  configured IP address while it will not match for other users. The second rule will then reject all 
+  requests from other IP addresses.
+
+https://symfony.com/doc/3.0/security/access_control.html
+
+https://symfony.com/doc/3.0/expressions.html#security-complex-access-controls-with-expressions
+
+https://symfony.com/doc/3.0/security/force_https.html
 
 Guard authenticators
 --------------------
 
+https://symfony.com/doc/3.0/security/guard_authentication.html
+
+https://symfony.com/doc/3.0/security/multiple_guard_authenticators.html
+
 Voters and voting strategies
 ----------------------------
-    
+
+- Voters are a way to programmatically check if access to a certain object should be granted.
+- A voter is an implementation of `VoterInterface`. It is registered as a voter by tagging its service
+  definition with `security.voter`.
+- Voters are decoupled from the client code checking permissions. The client code only asks for access to
+  some "attribute" of an object. This attribute is a custom operation on the object, such as "view" or 
+  "edit". Which voter(s) check access is not visible to the client code.
+- When client code asks is access is granted to the current user (by calling `isGranted()` on the injected
+  `security.authorization_checker`), the voter system (more precise, the `security.access_decision_manager`
+  service) iterates over all registered voters and calls their `vote()` methods. `vote()` returns one of
+  `VoterInterface::ACCESS_GRANTED`, `VoterInterface::ACCESS_ABSTAIN`, `VoterInterface::ACCESS_DENIED`.
+- The total result of the votes depends on the strategy used for the `AccessDecisionManager` (which is
+  configured in the `security: access_decision_manager: strategy` config key). Possible values are:
+  - `affirmative` (default): Access is granted if at least one voter grants access.
+  - `consensus`: Access is granted if more voters grant access than deny access.
+  - `unanimous`: Access is granted if all voters grant access.
+- Voters can also extend the `Voter` class instead of implementing the `VoterInterface` interface. In this
+  case, they need to implement the methods `supports()` (which should return true if the voter feels
+  responsible to handle the passed combination of subject and operations/attributes) and `voteOnAttributes()`
+  (which should return a boolean value - true to grant access, false otherwise). There is no way to abstain
+  from the vote - `VoterInterface::ACCESS_ABSTAIN` will only be return by the `Voter` base class if the
+  class is not responsible.
+- Normally only one voter exists for a check (i.e. there is exactly one voter that returns true in 
+  `supports()` for a checking request; other voters return false in `supports()`, or ACCESS_ABSTAIN if they
+  do not extend `Voter` but implement `VoterInterface`).
+- The base controller has shortcut methods `isGranted()` (directly calls the method with the same name
+  in `security.authorization_checker`) and `denyAccessUnlessGranted()` (calls `isGranted()` and throws an
+  `AccessDeniedException` if access is denied).
+- If no voter supports the authorization request, or all voters return ACCESS_ABSTAIN, the outcome depends 
+  on settings for the `AccessDecisionManager`. See the code for that class for details.
+- Notable built-in voters are:
+  - `AuthenticatedVoter`: Performs authentication checks mentioned above (IS_AUTHENTICATED_FULLY, ...).
+  - `RoleVoter`: Performs authorization (role) checks mentioned above.
+  - `RoleHierarchyVoter`: Subclass of `RoleVoter` that resolves role the hierarchy defined in security.yml.
+  - `ExpressionVoter`: Votes on attributes that are `Expression` objects.
+
+https://symfony.com/doc/3.0/components/security/authorization.html
+
+https://symfony.com/doc/3.0/security/voters.html
+
 HTTP Caching
 ============
 
