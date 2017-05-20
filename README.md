@@ -2091,14 +2091,80 @@ Console
 Built-in commands
 -----------------
 
+- The list of built-in commands can be viewed by calling `bin/console` without parameters.
+- The probably most often used built-in command is `cache:clear`.
+- By default, the `dev` environment is used. Specify e.g. the prod environment with `--env=prod`.
+
 Custom commands
 ---------------
+
+- Custom commands are classes that extend the `Command` or the `ContainerAwareCommand` class.
+- A command is auto-detected by Symfony if it lives in the `MyBundle/Command` namespace of a bundle and
+  if its name ends with `Command`.
+- Commands can also be registered as services, so that e.g. dependencies can be declared. To be recognized
+  as command, a service needs to be tagged with `console.command`.
+- A command needs to implement a `configure()` method, in which its name, description, help text, input
+  options and arguments are defined.
+- A command needs to implement an `execute()` method, which contains the actual command code.
+- Optionally commands may also implement an `initialize()` method which is called after input arguments
+  have been set. This can be used e.g. for command class hierarchies to set base class variables in the
+  sub-classes.
+- Optionally commands may also implement an `interact()` method which is called after `initialize()`, but
+  before `execute()`. In this method the command may interact with the user in order to receive missing
+  arguments.
+
+https://symfony.com/doc/3.0/console.html
+
+https://symfony.com/doc/3.0/console/commands_as_services.html
 
 Configuration
 -------------
 
+- A command can be configured by overriding the `configure()` method. This method is called by the constructor
+  of the `Command` class (therefore be sure to call the parent if you override the constructor of a command).
+- In the `configure()` method, call the following methods to configure the command:
+  - `setName()`: Sets the name for the command by which it can be called from the terminal. The name should be namespaced,
+    using colons as separators, e.g. `myapp:mybundle:mycommand`. Alternatively the name can directly be passed in the
+    constructor.
+  - `setDescription()`: Sets the short description that is displayed when the user executes the `list` command (which is also
+    the default if no command is passed).
+  - `setHelp()`: Sets the longer help text that is displayed when the user executes the command with the `--help` option.
+  - `setCode()`: Sets a callable to be run instead of the code in the `execute()` method.
+  - `setDefinition()`: Defines a set of arguments and options for the command (see below).
+  - `setProcessTitle()`: Sets the title of the system process for this command (intended for long-running commands only).
+  - `setAlias()`: Sets one or more aliases for the command.
+
+https://symfony.com/doc/3.0/console.html#configuring-the-command
+
 Options and arguments
 ---------------------
+
+- Arguments are strings passed with the console call. They are always ordered.
+- To define an argument, call `$this->addArgument()` in the command's `configure()` method, providing a name and 
+  optionally further values. To get the value, call `InputInterface::getArgument('argumentname')` in the `execute()`
+  method.
+- Arguments can be required or optional. This can be set with the second parameter for `addArgument()` (value
+  `InputArgument::REQUIRED` or `InputArgument::OPTIONAL`).
+- An argument can also be an array. Set `InputArgument::IS_ARRAY` as type. Only the last argument can be an array.
+  The array can be combined with REQUIRED/OPTIONAL by combining them with logical OR, e.g. 
+  `InputArgument::REQUIRED | InputArgument::IS_ARRAY`
+- If a required argument was not passed by the user, the console will output an error and abort.
+- An argument can have a description which will be displayed when the command is called with `--help`. This is the 
+  third parameter for `addArgument()`.
+- With the fourth and last parameter, a default value can be set, but only if the argument is optional.
+- Options are unordered modifiers for the command. They are always passed with a double dash, e.g.  `--force`; an 
+  abbreviation can be defined, so that the option can be passed with a single dash and normally a single letter, e.g. 
+  `-f` (second parameter for `addOption()`).
+- To define an option, call `$this->addOption()` in the command's `configure()` method, providing a name and 
+  optionally further values. To get the value, call `InputInterface::getOption('optionname)` in the `execute()` method.
+- Options are always optional.
+- Options are by default boolean flags, but can be configured to accept values. To do this, set the third parameter of
+  `addOption()` to `InputOption::VALUE_REQUIRED` or `InputOption::VALUE_OPTIONAL`. The value `InputOption::VALUE_NONE` 
+  can also be set explicitly. The value `InputOption::VALUE_ARRAY` marks the option as array, which can be combined with
+  optional or required as for arguments.
+- Description and default (parameters 4 and 5) behave as for arguments. 
+
+https://symfony.com/doc/3.0/console/input.html
 
 Input and Output objects
 ------------------------
@@ -2106,11 +2172,43 @@ Input and Output objects
 Built-in helpers
 ----------------
 
+- Question helper: Helps in asking the user for input.
+- Formatter helper: Helps in formatting output with color.
+- Progress bar: Helps in displaying progress information on long-running tasks.
+- Table: Helps in displaying tabular data (the old table helper was removed in Symfony 3.0).
+- Debug formatter helper: Helps in displaying debug information.
+
+https://symfony.com/doc/3.0/components/console/helpers/questionhelper.html
+
+https://symfony.com/doc/3.0/components/console/helpers/formatterhelper.html
+
+https://symfony.com/doc/3.0/components/console/helpers/progressbar.html
+
+https://symfony.com/doc/3.0/components/console/helpers/table.html
+
+https://symfony.com/doc/3.0/components/console/helpers/debug_formatter.html
+
 Console events
 --------------
 
 Verbosity levels
 ----------------
+
+- The console supports 5 verbosity levels that can be used to control the amount of output messages.
+- Commands need to explicitly/programmatically output messages conditionally based on the current 
+  verbosity level, or otherwise the level requested by the user has no effect. The check can be done by
+  either calling `OutputInterface::getVerbosity()` and comparing the value to the constants 
+  `OutputInterface::VERBOSITY_*`, or calling `OutputInterface::isQuiet()`, `OutputInterface::isVerbose()` 
+  and so on.
+- If an exception occurs, the full stack-trace will be printed on all levels of verbose and above.
+- Defined levels are:
+  - quiet: no output; constant `VERBOSITY_QUIET`, method `isQuiet()`, argument `-q` or `--quiet`.
+  - normal: default level; constant `VERBOSITY_NORMAL`, no method, no argument.
+  - verbose: increased verbosity; constant `VERBOSITY_VERBOSE`, method `isVerbose()`, argument `-v`.
+  - very verbose: informative, non-essential messages; constant `VERBOSITY_VERY_VERBOSE`, method `isVeryVerbose()`, argument `-vv`.
+  - debug: debug messages; constant `VERBOSITY_DEBUG`, method `isDebug()`, argument `-vvv`.
+
+https://symfony.com/doc/3.0/console/verbosity.html
     
 Automated Tests
 ===============
