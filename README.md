@@ -1934,6 +1934,22 @@ https://symfony.com/doc/3.0/security/force_https.html
 Guard authenticators
 --------------------
 
+- Guard authenticators easen the implementation of a custom authentication system.
+- A guard authenticator is a class that either implements `GuardAuthenticatorInterface` or extends 
+  `AbstractGuardAuthenticator`. The abstract class implements one of the interface methods, 
+  `createAuthenticationToken()`.
+- The interface defines seven methods that are described in the docs and in the code. These methods 
+  basically handle user retrieval, credential provision and post-authentication hooks.
+- Register the authenticator in the firewall configuration under 
+  `security: firewalls: myfirewall: guard: authenticators: myauthenticatorserviceid`. Besides the
+  authenticator(s), an `entry_point` (see below) and a (user) `provider` can be specified. 
+- Multiple authenticators are supported. The list of authenticators will be iterated, and any authenticator
+  that returns `null` for `getCredentials()` will be skipped (exceptions will cancel the authentication
+  process).
+- When using multiple authenticators, the `entry_point` must be configured. This is the service ID of
+  the authenticator on which the `start()` method should be called if the user provided no credentials.
+- To use different entry points for different authenticators, multiple firewalls need to be configured.
+
 https://symfony.com/doc/3.0/security/guard_authentication.html
 
 https://symfony.com/doc/3.0/security/multiple_guard_authenticators.html
@@ -1986,11 +2002,55 @@ HTTP Caching
 Cache types (browser, proxies and reverse-proxies)
 --------------------------------------------------
 
+- The browser can be instructed to cache a response, so that the browser won't repeat the same request
+  as long as the cache is valid (time-based expiration cache using the headers `Expires` and `Cache-Control`,
+  or validation cache using the headers `ETag` and `Last-Modified`, or a combination of both expiration
+  and validation).
+- A reverse proxy sits between the client and the application. It interprets the cache directives in the 
+  application's response and caches these responses for all clients. It is also possible to cache only
+  fragments of a page.
+- When using a shared cache such as a gateway cache, care needs to be taken if user-specific data is
+  contained in the page, be it personal information such as address data or technical information such
+  as a CSRF token.
+
+https://symfony.com/doc/3.0/http_cache.html
+
+https://symfony.com/doc/3.0/http_cache/varnish.html
+
+https://symfony.com/doc/3.0/http_cache/form_csrf_caching.html
+
 Expiration (Expires, Cache-Control)
 -----------------------------------
 
+- Expiration is more simple and efficient than validation and should therefore be preferred when possible.
+- Either use the header `Cache-Control` to set a cache duration in seconds (Symfony: use 
+  `Response::setSharedMaxAge()`).
+- Or use the header `Expires` to set a date and time value (in GMT timezone) for when the cache should 
+  expire (Symfony: use `Response::setExpire()`). The date should not be more than one year in the future
+  according to the HTTP/1.1 spec.
+
+https://symfony.com/doc/3.0/http_cache/expiration.html
+
 Validation (ETag, Last-Modified)
 --------------------------------
+
+- With validation caching, the browser can be instructed to check for cache validity. This can be used to
+  update a resource as soon as it changed on the server side.
+- The server responds with HTTP status 304 if the cache is still fresh, or the regular response with status
+  200 if not.
+- This type of cache is mostly only useful if the system needs less time to check for cache validity than 
+  to generate the full response.
+- Either use the header `ETag`. The ETag is any custom value the server can use to check if the cache is
+  still fresh. The server sets the ETag on the response and the client re-sets the same ETag on the next
+  request for the same URL (Symfony: use `Response::setETag()` in combination with `Response::setPublic()`
+  and `Response::isNotModified()`).
+- Or use the header `Last-Modified`. The server sets this value to a date at which the resource was last 
+  modified (this may depend on multiple internal modification dates, e.g. if the requested resource contains
+  blog post and author data). The client sets the request header `If-Modified-Since`, and if this date is
+  later than the `Last-Modified` date, the server will return the 304 status code and will not continue
+  processing the request. This check is performed in the `Response::isNotModified()` method.
+
+https://symfony.com/doc/3.0/http_cache/validation.html
 
 Client side caching
 -------------------
@@ -2000,7 +2060,31 @@ Server side caching
 
 Edge Side Includes
 ------------------
-    
+
+- Normally gateway caches cache the entire page. If a page contains dynamic elements that may not be cached,
+  Edge Side Includes can be used to integrate these dynamic elements in the otherwise statically cached page.
+- It is also possible to set a differing cache lifetime for these includes. 
+- There is a tag `<esi:include />` that marks a spot as an insertion point for a page 
+  fragment. The `src` attribute contains the absolute path to the resource to include. The gateway cache
+  will automatically fetch this sub-resource from the application and insert it into the page markup before
+  returning the response to the client (or read the fragment from its cache storage if the fragment is
+  cached as well).
+- In Symfony there is the `render_esi()` Twig function that can be used in the same way as the standard
+  `render()` function (and therefore be used in conjunction with `controller()` and `url()`). If a gateway
+  cache is used, the include tag will be generated; else the content is generated as if the `render()`
+  function was used.
+- Symfony detects if a gateway cache is installed by checking if a request header `Surrogate-Capability`
+  is present and contains `ESI/1.0`. If the Symfony reverse proxy is used, this header is not required.
+- Configuration: Set `framework: esi: { enabled: true }`.
+- As sub-resources need to be directly fetchable via HTTP, Symfony needs care of fragment routing. Configure
+  `framework: fragments: { path: /_fragment }` to let routing add a /_fragment prefix to any URLs generated
+  through the `render_esi()` function and resolve the route on requests.
+- Fragment routes are only resolved if they are signed, so that clients cannot call these routes directly.
+- Use only the `s-maxage` response header instead of `maxage` when working with ESI to prevent the client
+  from applying the cache expiration settings of the complete page instead of the fragments.
+
+https://symfony.com/doc/3.0/http_cache/esi.html
+
 Console
 =======
 
