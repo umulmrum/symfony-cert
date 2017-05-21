@@ -2169,14 +2169,75 @@ https://symfony.com/doc/3.0/console/input.html
 Input and Output objects
 ------------------------
 
+- In the command's `execute()` method, an `InputInterface` and an `OutputInterface` are available.
+- Input is described in the sections above (options, arguments) and below (questions).
+- The output object provides methods `write()` and `writeln()` to write content to the current output.
+- Verbosity levels are also handled by the output object, this is discussed below.
+- Output can be styled by surrounding the emphasized text with tags, such as `<info>`, `<comment>`, `question`, `error`.
+- Custom styles can be defined by instantiating an `OutputFormatterStyle`, setting foreground and background colors as
+  well as options like bold text. This style can be set by calling `$output->getFormatter()->setStyle('name', $style)`.
+- To simplify output formatting, the Symfony Style Guide can be applied to format output by its semantics, e.g. 
+  setting text as title will automatically apply title formatting. This is done by instantiating `SymfonyStyle` and 
+  calling its methods like `title()`, `block()`, `section()`, `listing()`, `text()`, `comment()`, `success()`, 
+  `error()`, `warning()`, `note()`, `caution()`, `table()`, `ask()`, `askHidden()`, `confirm()`, `choice()`, 
+  `progressStart()`, `progressAdvance()`, `progressFinish()`, `createProgressBar()`, `askQuestion()`, `newLine()`. Some
+  of these methods use the helpers described below.
+
+https://symfony.com/doc/3.0/console/coloring.html
+
+https://symfony.com/doc/3.0/console/style.html
+
 Built-in helpers
 ----------------
 
-- Question helper: Helps in asking the user for input.
-- Formatter helper: Helps in formatting output with color.
-- Progress bar: Helps in displaying progress information on long-running tasks.
-- Table: Helps in displaying tabular data (the old table helper was removed in Symfony 3.0).
-- Debug formatter helper: Helps in displaying debug information.
+- Most helpers can be retrieved with `Command::getHelper()`, passing the name of the helper.
+- Question helper (`question``): Helps in asking the user for input. Has one method `ask()` that returns user input depending on the
+  question class provided.
+  - Ask simple yes/no questions with a `ConfirmationQuestion`; returns a boolan value.
+  - Ask free text questions with a `Question`; returns a string.
+  - Ask for the selection from a list with a `ChoiceQuestion`; returns a string. Can also be configured to allow 
+    multiple answers separated by a comma; will then return an array containing strings.
+  - Autocomplete values can be provided that will automatically be suggested as the user types.
+  - Input can be hidden, e.g. for passwords.
+  - A validation callback function can be set so that user input is automatically validated (throw an exception in the
+    function when validation fails).
+  - A unit test can use an input stream to emulate user input (`fopen('php://memory', 'r+', false)`).
+- Formatter helper (`formatter`): Helps in formatting output with color.
+  - Print output in a section with `formatSection()` (colored output and with the section name in square brackets at the
+    beginning of the line).
+  - Print output in a block with `formatBlock()` (colored background with the background not depending on the length of
+    the individual lines; predefined styles like `error` (red background) can be used, or custom ones defined).
+- Progress bar (instantiate `ProgressBar`): Helps in displaying progress information on long-running tasks.
+  - Instantiate `ProgressBar` and call `start()` on the instance.
+  - Do the work the progress bar indicates, e.g. in a loop and advance the progress bar after each step by calling 
+    `advance()`. The progress bar can also be configured to advance only on fewer calls of `advance()` by calling
+    `setRedrawFrequency()`. Additionally, the progress can be advanced by more than one step by calling `advance(int)` 
+    or be set manually with `setProgress()`.
+  - Call `finish()` at the end to display the 100% state.
+  - There are lots of customization options for the progress bar; see the docs.
+- Table (instantiate `Table`): Helps in displaying tabular data (the old table helper was removed in Symfony 3.0).
+  - Instantiate `Table`.
+  - Set headers with `setHeaders()`.
+  - Set data with `setRows()`.
+  - Optionally add separator rows with instances of `TableSeparator` in the table row data.
+  - Optionally add table cells that span multiple columns with a `TableCell` instance in the table row data with the
+    `colspan` setting set to the desired value (similar to the HTML table colspan attribute).
+  - Optionally add table cells that span multiple rows. This is also done with a `TableCell` instance, but with a
+    `rowspan` setting.
+  - Optionally set the table style with `setStyle()`; values are `default`, `compact` (no separators between rows or 
+    columns), `borderless` (no separators between columns). Custom styles can be defined (see docs).
+  - Call `render()`.
+- Debug formatter helper (`debug_formatter`): Helps in displaying debug information for different processes run by the
+  command. 
+  - The helper formats messages for starting a process, output and error information while running this process
+  and a result after stopping the process.
+  - The methods `start`, `progress` and `stop` expect an identifier as first argument, so that multiple processes run by
+    the command can be distinguished. Passing `spl_object_hash($process)` is recommended.
+- Process helper (`process`): Helps in running external processes.
+  - Call `run()` or `mustRun`, passing the command to run. Both will run the command and return the executed process,
+    but `mustRun()` will throw a `ProcessFailedException` if the command was not successful (i.e. the exit code was not 
+    0).
+  - The process helper uses the debug formatter helper.
 
 https://symfony.com/doc/3.0/components/console/helpers/questionhelper.html
 
@@ -2190,6 +2251,18 @@ https://symfony.com/doc/3.0/components/console/helpers/debug_formatter.html
 
 Console events
 --------------
+
+- Similar to web requests, console commands dispatch some events during their lifecycle which can be used as hooks for
+  custom actions.
+- `ConsoleEvents::COMMAND` / `console.command`: Dispatched before a command is run. Use it e.g. to log command execution
+  or disable the command dynamically by calling `ConsoleCommandEvent::disableCommand()`. In the latter case, the console
+  will return exit status 113.
+- `ConsoleEvents::EXCEPTION` / `console.exception`: Dispatched when an exception is thrown. Use it to handle exceptions,
+  e.g. log the exception.
+- `ConsoleEvents::TERMINATE` / `console.terminate`: Dispatched after the command was executed. Use it e.g. to perform
+  cleanup operations. Listeners may also change the exit code.
+
+https://symfony.com/doc/3.0/components/console/events.html
 
 Verbosity levels
 ----------------
