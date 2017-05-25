@@ -20,6 +20,43 @@ PHP and Web Security
 PHP 5.3 to PHP 5.6 API
 ----------------------
 
+- Significant changes in PHP 5.4:
+  - Traits.
+  - Short array syntax.
+  - Function array dereferencing (`foo()[0]`).
+  - $this can be used in Closures.
+  - Class members can be accessed directly after instantiation (`(new Foo())->bar()`).
+  - Binary numbers, e.g. 0b10101010.
+  - Built-in development web server.
+  - `callable` type hint.
+  - Register globals, magic quotes, safe mode removed.
+- Significant changes in PHP 5.5:
+  - Generators.
+  - `finally` keyword.
+  - New password hashing API (`password_hash()`, `password_verify()`).
+  - `::class` keyword for fully qualified class name resolution (performed at compile time, without autoloading).
+  - Expressions allowed as argument for `empty()`.
+  - Arrays of arrays can be unpacked with `list()` in a `foreach` loop, e.g. 
+    `foreach ($arrayOfArrays as list($internalElement1, $internalElement2))`.
+  - OPCache extension.
+  - No more support for Windows XP and 2003.
+- Significant changes in PHP 5.6:
+  - Constant scalar expressions (expressions in places where in former versions only static values were allowed, e.g.
+    in constants, function argument default values, class property declarations).
+  - Variadic functions via `...` (before, it was only possible to get all arguments via `func_get_args()` if more
+    arguments were expected than declared).
+  - Argument unpacking via `...` (arrays and traversables can be converted to argument lists).
+  - `**` exponentiation operator.
+  - Constant and function imports via `use`.
+  - Default character set for some functions (`htmlentities()`, `html_entity_decode()`, `htmlspecialchars()`) is UTF-8.
+  - SSL/TLS peer verification on by default.
+
+https://secure.php.net/releases/5_4_0.php
+
+https://secure.php.net/releases/5_5_0.php
+
+https://secure.php.net/releases/5_6_0.php
+
 Object Oriented Programming
 ---------------------------
 
@@ -32,8 +69,8 @@ Interfaces
 Anonymous functions and closures
 --------------------------------
 
-- anonymous function: Function without a name, used inline as callback.
-- closure: Function assigned to a variable, can be executed by accessing the variable and adding brackets + arguments.
+- Anonymous function: Function without a name, used inline as callback.
+- Closure: Function assigned to a variable, can be executed by accessing the variable and adding brackets + arguments.
 
 https://en.wikipedia.org/wiki/Closure_(computer_programming)
 
@@ -42,32 +79,32 @@ https://secure.php.net/manual/en/functions.anonymous.php
 Abstract classes
 ----------------
 
-- class modifier "abstract".
-- abstract methods (semicolon instead of method body) can be defined.
-- cannot be instantiated directly, needs to be subclassed.
-- concrete subclasses must define abstract methods.
-- used as basic implementation, often to define a common workflow (e.g. template method pattern).
+- Class modifier "abstract".
+- Abstract methods (semicolon instead of method body) can be defined.
+- Cannot be instantiated directly, needs to be subclassed.
+- Concrete subclasses must define abstract methods.
+- Used as basic implementation, often to define a common workflow (e.g. template method pattern).
 
 Exception and error handling
 ----------------------------
 
-- traditionally errors are raised as notices, warnings, errors and fatal errors.
-- those PHP errors are output to the browser and logged in the web server logs, both of which can be 
+- Traditionally errors are raised as notices, warnings, errors and fatal errors.
+- Those PHP errors are output to the browser and logged in the web server logs, both of which can be 
   disabled or limited to certain error types ("error_reporting" and "display_errors" - the latter 
   can only be completely enabled or disabled; both can be set in php.ini and using ini_set()).
-- error output can be suppressed by adding an @ before a function or method call (though this is
+- Error output can be suppressed by adding an @ before a function or method call (though this is
   generally discouraged).
-- errors cannot normally be treated in another way than logging and displaying; however, it is
+- Errors cannot normally be treated in another way than logging and displaying; however, it is
   possible to register a custom error handler function using set_error_handler('functionName').
-- a custom error handler receives information on the error type, the message, the file, the line
+- A custom error handler receives information on the error type, the message, the file, the line
   number and a context.
-- setting error_reporting so that e.g. a notice will not be reported means that a custom error handler
+- Setting error_reporting so that e.g. a notice will not be reported means that a custom error handler
   is not triggered when a notice would be raised.
   
-- exceptions are more common in object-oriented programming languages.
-- exceptions are themselves classes that derive from \Exception.
-- exceptions can be thrown by built-in and user code.
-- when an exception is thrown, the current method execution is aborted and the exception object
+- Exceptions are more common in object-oriented programming languages.
+- Exceptions are themselves classes that derive from \Exception.
+- Exceptions can be thrown by built-in and user code.
+- When an exception is thrown, the current method execution is aborted and the exception object
   bubbles up the execution path until they are either caught in a method on a higher level, or 
   the outermost method call is reached. In the latter case, the thread is aborted and a stack trace
   is rendered (output can be disabled in PHP with display_errors).
@@ -81,22 +118,22 @@ https://secure.php.net/manual/en/function.set-error-handler.php
 Traits
 ------
 
-- traits are additions to classes that can define methods and properties.
-- a class can "use" a trait by adding the "use" keyword. The properties and methods of the trait
+- Traits are additions to classes that can define methods and properties.
+- A class can "use" a trait by adding the "use" keyword. The properties and methods of the trait
   will then behave as if copy-and-pasted into the class definition. This is a workaround for the
   fact that in PHP no multi-inheritance is allowed.
-- if a class defines a method with the same name as a method in a trait, the class method overrides
+- If a class defines a method with the same name as a method in a trait, the class method overrides
   the one in the trait. However, a trait method overrides a method with the same name of a super
   class.
-- a class can use multiple traits. If method names conflict, one of the methods must be selected
+- A class can use multiple traits. If method names conflict, one of the methods must be selected
   using the "insteadof" keyword (e.g. B::foo instead of A if A and B are classes and foo is a method
   defined in both of them).
-- an alias can be given to a method by using the "as" keyword (e.g. B::foo as bar). The method can
+- An alias can be given to a method by using the "as" keyword (e.g. B::foo as bar). The method can
   then be called by its alias. In a naming conflict this makes it possible to use both methods by
   providing an alias for one of them.
-- see link below for more features such as changing method visibility, traits composed from traits,
+- See link below for more features such as changing method visibility, traits composed from traits,
   abstract and static members.
-- as traits can contain properties and not only methods, PHP traits are really mixins.
+- As traits can contain properties and not only methods, PHP traits are really mixins.
   
 https://secure.php.net/manual/en/language.oop5.traits.php
 
@@ -2093,7 +2130,8 @@ Built-in commands
 
 - The list of built-in commands can be viewed by calling `bin/console` without parameters.
 - The probably most often used built-in command is `cache:clear`.
-- By default, the `dev` environment is used. Specify e.g. the prod environment with `--env=prod`.
+- By default, the `dev` environment is used. Specify e.g. the prod environment with `--env=prod` or set the 
+  environment variable SYMFONY_ENV to the desired value.
 
 Custom commands
 ---------------
@@ -2271,8 +2309,9 @@ Verbosity levels
 - Commands need to explicitly/programmatically output messages conditionally based on the current 
   verbosity level, or otherwise the level requested by the user has no effect. The check can be done by
   either calling `OutputInterface::getVerbosity()` and comparing the value to the constants 
-  `OutputInterface::VERBOSITY_*`, or calling `OutputInterface::isQuiet()`, `OutputInterface::isVerbose()` 
-  and so on.
+  `OutputInterface::VERBOSITY_*`, or calling `OutputInterface::isVerbose()` 
+  and so on. Note that quiet mode is automatically considered by Symfony, so this level does not need to be checked 
+  manually.
 - If an exception occurs, the full stack-trace will be printed on all levels of verbose and above.
 - Defined levels are:
   - quiet: no output; constant `VERBOSITY_QUIET`, method `isQuiet()`, argument `-q` or `--quiet`.
@@ -2286,36 +2325,120 @@ https://symfony.com/doc/3.0/console/verbosity.html
 Automated Tests
 ===============
 
+- To run tests with PHPUnit, call `phpunit` from the project root. This assumes that PHPUnit was installed globally.
+- PHPUnit will use a `phpunit.xml` file in the same directory as configuration file, or `phpunit.xml.dist` if no
+  `phpunit.xml` file was found.
+- A standard Symfony project comes with a `phpunit.xml.dist` file, which among other settings sets the bootstrap path
+  to `app/autoload.php`, so that Composer autoloading is automatically available.
+
+https://symfony.com/doc/3.0/testing.html
+
 Unit tests with PHPUnit
 -----------------------
+
+- Just as regular PHPUnit unit testing, nothing special here.
+
+https://symfony.com/doc/3.0/testing.html#unit-tests
 
 Functional tests with PHPUnit
 -----------------------------
 
+- For functional tests, make an initial request, check the response, click a link or submit a form, check the response,
+  and so on.
+- There is a `WebTestCase` which a functional test should extend in order to have the Symfony container booted and a
+  client object with lots of helper methods available (`createClient()` method). The `WebTestCase` extends the 
+  `KernelTestCase` which extends the default `PHPUnit_Framework_TestCase`.
+
+
+https://symfony.com/doc/3.0/testing.html#functional-tests
+
 Client object
 -------------
+
+- The `Client` object acts like a browser and can therefore be used to send requests and examine the responses.
+- A call to `Client::request()` will return a `Crawler` object for XML and HTTP responses that allows programmatic
+  access to the response, so that it is much easier to make assertions on the contents (Symfony DOMCrawler component).
+- For other content types, the raw response can be received with `Client::getResponse()->getContent()`.
 
 Crawler object
 --------------
 
+https://symfony.com/doc/3.0/testing.html#testing-crawler
+
 Profile object
 --------------
+
+- The profile can be retrieved by calling `getProfile()` on the client. The profile can be null if profiling is disabled.
+- Collectors can then be retrieved by calling `getCollector()` on the profile.
+
+https://symfony.com/doc/3.0/testing/profiling.html
 
 Framework objects access
 ------------------------
 
+- The service container can be retrieved by calling `getContainer()` on the client. This should only rarely be used;
+  instead it is better to examine the response to decide if a test was successful.
+
+https://symfony.com/doc/3.0/testing.html#accessing-the-container
+
 Client configuration
 --------------------
+
+- The client can be insulated in separate processes to avoid interference. This is done by simply calling `insulate()`
+  on the client; internally the process component will be used to start another PHP process. This will be slower
+  because of the overhead of creating new processes. It can make sense to use the main process for a request to avoid
+  one additional process.
+- By default, the client does not automatically follow redirects. The client can be instructed to follow a redirect by
+  calling `followRedirect()`. It can also be configured to automatically follow all redirects by calling 
+  `followRedirects()`.
+
+https://symfony.com/doc/3.0/testing.html#working-with-the-test-client
+
+https://symfony.com/doc/3.0/testing.html#redirecting
 
 Request and response objects introspection
 ------------------------------------------
 
+https://symfony.com/doc/3.0/components/dom_crawler.html
+
 PHPUnit bridge
 --------------
 
+- The PHPUnit bridge adds a few Symfony-specific features to unit tests.
+- Use a consistent locale across tests.
+- Load Doctrine annotations if used.
+- The `DeprecationErrorHandler` adds information on deprecated features in tested code in the summary at the end of the
+  tests.
+  - Deprecation notices that were silenced with "@".
+  - Deprecation notices that were not silenced with "@". By default, any non-silenced tests will fail. This can be 
+    configured by setting the environment variable SYMFONY_DEPRECATIONS_HELPER (e.g. in phpunit.xml in the <php> section 
+    with `<env name="SYMFONY_DEPRECATIONS_HELPER" value="x" />`).
+    - Set it to a number to configure a number of tests required to fail in order to let the test run fail.
+    - Set it to "weak" to ignore deprecation errors.
+    - Set it to a regex enclosed by "/" to output all deprecation messages matched by this regex.
+  - Tests that test legacy features. These tests are marked in one of these ways:
+    - Add the `@group legacy` annotation to the test class or method.
+    - Let the test class name begin with `Legacy`.
+    - Let the test method name begin with `testLegacy` instead of `test`.
+    - Let the data provider method start with `provideLegacy` or `getLegacy` (bit weird to me).
+- `ClockMock` helper class for time-sensitive tests. This class mocks the PHP time-based functions `microtime()`, 
+  `sleep()`, `time()`, `usleep()`, so that calls to `sleep()` and `usleep()` will increase an internal timer instead of 
+   actually sleeping, and the other functions will return the increased time to simulate the real `\sleep()` call.
+- The `ClockMock` class will register the new functions in the namespace of the tested class, so that they override the
+  default PHP functions. There are two ways to trigger this registration:
+  - Add the `@group time-sensitive` annotation to the test class or method. Then the namespace is guessed from the 
+    namespace of the test class by removing the `\Tests` part and assuming that apart from that the namespaces are the
+    same. If this is not the case, the namespace needs to be configured in the phpunit.xml file (see docs).
+  - Call `ClockMock::register(__CLASS__)` and `ClockMock::withClockMock(true)` before the test and 
+    `ClockMock::withClockMock(false)` after the test.
+
+https://symfony.com/doc/3.0/components/phpunit_bridge.html
+
 Handling legacy deprecated code
 -------------------------------
-    
+
+See above.
+
 Miscellaneous
 =============
 
@@ -2328,8 +2451,16 @@ Code debugging
 Deployment best practices
 -------------------------
 
+https://symfony.com/doc/3.0/deployment.html
+
 Process and Serializer components
 ---------------------------------
+
+https://symfony.com/doc/3.0/components/process.html
+
+https://symfony.com/doc/3.0/components/serializer.html
+
+https://symfony.com/doc/3.0/serializer.html
 
 Data collectors
 ---------------
