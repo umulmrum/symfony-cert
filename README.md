@@ -2465,8 +2465,39 @@ https://symfony.com/doc/3.0/serializer.html
 Data collectors
 ---------------
 
+- Custom data collectors implement the `DataCollectorInterface`. The method `getName()` must return an 
+  application-unique name, `collect()` is called once to get the data collected by the collector during the request. The
+  latter method will normally save internal data to `$this->data`, where it will be serialized (be careful to only store
+  serializable data) and can be fetched by custom public methods that are called from the snippet template for the web 
+  debug toolbar. Define the collector as a service and set the `data_collector` tag (in the tag declaration, define 
+  `template` for the collector's template (see below) and `id` for the collector's name (must be the same name as 
+  returned by `getName()`). Optionally set `priority` to change the collector's display order (default 255, higher 
+  means further on the left)). 
+- A toolbar template should extend `@WebProfiler/Profiler/layout.html.twig`, overriding a few blocks: `toolbar` with the
+  sub-blocks `icon` and `text` for displaying data in the toolbar, `head` to add or change CSS and JS (optional), `menu`
+  for the left-hand menu in the profiler view (optional), `panel` for the profiler panel (optional).
+
+https://symfony.com/doc/current/profiler/data_collector.html
+
 Web Profiler and Web Debug Toolbar
 ----------------------------------
+
+- The profiler should normally not be enabled in production because of all reasons (massive performance impact, bleeding
+  internal information, user confusion). It can however make sense to use enable it only for requests of developers to
+  aid in debugging. For this purpose, request matchers can be created and/or configured to match only certain requests.
+  Matchers are configured in the `framework: profiler: matcher` section of the configuration.
+- Built-in matchers are:
+  - `ip`.
+  - `path`. Regex used for path matching similar to the firewall matching.
+  - `service`. Service ID of a custom request matcher instance (implementing `RequestMatcherInterface` with the single
+    method `matches()` that will enable the profiler if it returns true).
+- Profile data can be retrieved by calling `find()` on the `profiler` service, which will return profiler tokens 
+  (passing multiple criteria like the last n tokens, tokens for a specific path, a specific IP address, HTTP method, 
+  time). Calling `loadProfile()` with the token(s) will then return the `Profile` instance.
+
+https://symfony.com/doc/current/profiler/matchers.html
+
+https://symfony.com/doc/current/profiler/profiling_data.html
 
 Internationalization and localization
 -------------------------------------
