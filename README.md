@@ -358,9 +358,14 @@ Event dispatcher and kernel events
     Listeners should generate a Response object from the controller's response or an exception is thrown.
   - kernel.response is dispatched after the response is ultimately known. Listeners may change or
     replace the response.
+  - kernel.finish_request is dispatched after the response for the current request is complete. This event is
+    intended for resetting global and environmental state of the application changed during the request. The event
+    does not receive the response but request, request type and kernel.
   - kernel.terminate is dispatched at the very end of the request. Depending on the PHP interpreter,
     the connection will be closed at that time and the client will not be influenced by longer-running
     actions. This event can e.g. be used to send emails without slowing down the request.
+  - kernel.exception is dispatched if an exception occurred during request handling. Listeners can e.g. show an
+    error page (like the framework's `ExceptionListener` that starts a new sub-request to display an error page).
   
 https://symfony.com/doc/current/event_dispatcher.html
 
@@ -545,7 +550,7 @@ RedirectResponse, BinaryFileResponse, StreamedResponse). It can also return arbi
 which case an event listener for the kernel.view event must generate the Response object.
 
 Controller classes are by convention located in the Controllers directory of a bundle. There they can
-be auto-discovered by the framework if they extend the base Controller class.
+be auto-discovered by the framework.
 
 Controller classes derived from the base Controller class provide these shortcut methods:
 
@@ -1011,7 +1016,8 @@ Global variables
   - session
   - user
 - Custom global variables can be configured by setting `twig: globals: foo: bar` in the config.yml file.
-- The value can also be a service; set the service ID as value, prefixed with an "@".
+- The value can also be a service; set the service ID as value, prefixed with an "@". Note that this service will NOT be
+  lazy-loaded, but initialized as soon as Twig is loaded.
 
 https://symfony.com/doc/current/templating/global_variables.html
 
@@ -2477,7 +2483,7 @@ Data collectors
   sub-blocks `icon` and `text` for displaying data in the toolbar, `head` to add or change CSS and JS (optional), `menu`
   for the left-hand menu in the profiler view (optional), `panel` for the profiler panel (optional).
 
-https://symfony.com/doc/current/profiler/data_collector.html
+https://symfony.com/doc/3.0/profiler/data_collector.html
 
 Web Profiler and Web Debug Toolbar
 ----------------------------------
@@ -2495,9 +2501,9 @@ Web Profiler and Web Debug Toolbar
   (passing multiple criteria like the last n tokens, tokens for a specific path, a specific IP address, HTTP method, 
   time). Calling `loadProfile()` with the token(s) will then return the `Profile` instance.
 
-https://symfony.com/doc/current/profiler/matchers.html
+https://symfony.com/doc/3.0/profiler/matchers.html
 
-https://symfony.com/doc/current/profiler/profiling_data.html
+https://symfony.com/doc/3.0/profiler/profiling_data.html
 
 Internationalization and localization
 -------------------------------------
