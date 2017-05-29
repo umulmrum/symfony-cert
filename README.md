@@ -208,7 +208,7 @@ Symfony Standard Edition
 - The Symfony Standard Edition as well as editions as a whole will be discontinued and replaced by
   Symfony Flex in Symfony 4.0 (not part of this certification).
 
-https://symfony.com/doc/current/setup.html
+https://symfony.com/doc/3.0/setup.html
 
 https://github.com/symfony/symfony-standard
 
@@ -225,7 +225,7 @@ License
 
 https://github.com/symfony/symfony/blob/master/LICENSE
 
-https://symfony.com/doc/current/contributing/code/patches.html#make-a-pull-request
+https://symfony.com/doc/3.0/contributing/code/patches.html#make-a-pull-request
 
 Components
 ----------
@@ -275,7 +275,7 @@ In later Symfony versions, more components were added
 - WebLink (3.3+)
 - Workflow (3.2+)
 
-https://symfony.com/doc/current/components/index.html
+https://symfony.com/doc/3.0/components/index.html
 
 Bundles
 -------
@@ -311,9 +311,9 @@ There are basically two ways to configure an application and its bundles:
 - container parameters
 - semantic configuration
 
-https://symfony.com/doc/current/configuration.html
-https://symfony.com/doc/current/configuration/configuration_organization.html
-https://symfony.com/doc/current/bundles/configuration.html
+https://symfony.com/doc/3.0/configuration.html
+https://symfony.com/doc/3.0/configuration/configuration_organization.html
+https://symfony.com/doc/3.0/bundles/configuration.html
 
 Code organization
 -----------------
@@ -340,13 +340,15 @@ Event dispatcher and kernel events
 - There are event listeners and event subscribers. The former are wired to the events they listen to
   in the dependency injection container, the latter define the events they listen to themselves.
 - Event listeners and subscribers are normally defined in the dependency injection container by
-  service definitions that contain the tag kernel.event_listener or kernel.event_subscribe.
+  service definitions that contain the tag `kernel.event_listener` or `kernel.event_subscriber`.
 - It is also possible to add event listeners at runtime.
 - There are some predefined events, but custom events can be defined by simply dispatching them.
   Events are only identified by their name.
-- An event can also have a payload which is encapsulated in the class Symfony\Component\EventDispatcher\Event.
-- It is possible to define custom events by subclassing the Event class.
-- Event listeners can be given a priority to change the order in which they are called.
+- An event can also have a payload which is encapsulated in the class `Symfony\Component\EventDispatcher\Event`
+  or a (built-in or custom) sub-class.
+- Event listeners can be given a priority to change the order in which they are called (higher priority means
+  earlier execution).
+- Event listener can call `stopPropagation()` on the event to disable all listeners thereafter.
 - The kernel dispatches a few events during the request's lifecycle. These are:
   - kernel.request at the beginning of the request. Event listeners may provide a response in
     which case the request takes a "shortcut" (only the kernel.response, kernel.finish_request
@@ -367,14 +369,14 @@ Event dispatcher and kernel events
   - kernel.exception is dispatched if an exception occurred during request handling. Listeners can e.g. show an
     error page (like the framework's `ExceptionListener` that starts a new sub-request to display an error page).
   
-https://symfony.com/doc/current/event_dispatcher.html
+https://symfony.com/doc/3.0/event_dispatcher.html
 
 Official best practices
 -----------------------
 
 The official best practices are a set of suggestions to keep an application simple.
 
-https://symfony.com/doc/current/best_practices/index.html
+https://symfony.com/doc/3.0/best_practices/index.html
 
 Release management
 ------------------
@@ -390,7 +392,7 @@ Release management
 - An LTS release is supported for 3 years after release, and receives security fixes for
   4 years after release.
 
-https://symfony.com/doc/current/contributing/community/releases.html
+https://symfony.com/doc/3.0/contributing/community/releases.html
 
 Backward compatibility promise
 ------------------------------
@@ -405,14 +407,14 @@ Backward compatibility promise
   - Call a private property or method via reflection.
   - Use or modify code in a namespace containing "Tests"
 
-https://symfony.com/doc/current/contributing/code/bc.html
+https://symfony.com/doc/3.0/contributing/code/bc.html
 
 Deprecations best practices
 ---------------------------
 
 Following semantic versioning, deprecations are only allowed in major or minor versions, not in fix versions.
 
-https://symfony.com/doc/current/contributing/code/conventions.html#contributing-code-conventions-deprecations
+https://symfony.com/doc/3.0/contributing/code/conventions.html#contributing-code-conventions-deprecations
 
 Standardization
 ===============
@@ -425,9 +427,10 @@ See above.
 Framework interoperability and PSRs
 -----------------------------------
 
-Symfony embraces standards and interoperability. Symfony components can be used in other frameworks
-and Symfony itself uses some standard components like Doctrine and Composer instead of reinventing
-all wheels. Symfony is member of the PHP-FIG group that standardizes common PHP tasks.
+- Symfony embraces standards and interoperability. 
+- Symfony components can be used in other frameworks and Symfony itself uses some standard components like Doctrine 
+  and Composer instead of reinventing all wheels. 
+- Symfony is member of the PHP-FIG group that standardizes common PHP tasks.
 
 Symfony implements the following PSR standards:
 
@@ -450,7 +453,7 @@ http://www.php-fig.org/psr/
 Naming conventions
 ------------------
 
-https://symfony.com/doc/current/contributing/code/conventions.html
+https://symfony.com/doc/3.0/contributing/code/conventions.html
 
 Coding standards
 ----------------
@@ -464,7 +467,8 @@ follows the Symfony coding standards.
 When contributing to Symfony, the fabbot will check the submitted code for code style issues
 (among other checks).
 
-https://symfony.com/doc/current/contributing/code/standards.html
+https://symfony.com/doc/3.0/contributing/code/standards.html
+
 https://github.com/FriendsOfPhp/PHP-CS-Fixer
 
 Third-party libraries integration
@@ -516,6 +520,8 @@ developer to define what is public.
 Semantic versioning gives a user of a library or framework the confidence that upgrading to a new
 minor or patch version will not break existing functionality.
 
+Deprecations are only allowed in major and minor versions.
+
 http://semver.org/
     
 Bundles
@@ -564,8 +570,8 @@ Controller classes derived from the base Controller class provide these shortcut
 - renderView() (renders a view and returns the rendered string)
 - render() (renders a view and returns a response)
 - stream() (streams a view)
-- createNotFoundException() (creates an exception with HTTP status 404)
-- createAccessDeniedException() (creates an exception with HTTP status 403)
+- createNotFoundException() (creates a `NotFoundHttpException` with HTTP status 404)
+- createAccessDeniedException() (creates an `AccessDeniedException` with HTTP status 403)
 - createForm() (creates a form instance)
 - createFormBuilder() (creates a form builder instance)
 - getDoctrine() (returns the Doctrine registry)
@@ -573,13 +579,14 @@ Controller classes derived from the base Controller class provide these shortcut
 - has()/get()/getParameter() (dependency injection container methods)
 - isCsrfTokenValid() (returns if a given CSRF token is valid)
 
-Alternatively controllers can be defined as services in the service container (independently of
-if they are located in the Controllers directory or not). The advantage is that dependency 
+Alternatively controllers can be defined as services in the service container (independent of
+if they are located in the Controller directory or not). The advantage is that dependency 
 injection can be used to inject exactly the required services instead of having to rely on the
 Service Locator semi-anti-pattern the base controller uses. The disadvantage is that every 
 dependency needs to be declared by the developer.
 
-https://symfony.com/doc/current/controller.html
+https://symfony.com/doc/3.0/controller.html
+
 https://en.wikipedia.org/wiki/Service_locator_pattern
 
 The views
@@ -593,7 +600,7 @@ app/Resources/views directory of the application.
 
 If the controller extends the base Controller, there is a render() method shortcut available. 
 
-https://symfony.com/doc/current/templating.html
+https://symfony.com/doc/3.0/templating.html
 
 The resources
 -------------
@@ -610,20 +617,20 @@ Error pages can be modified in three ways:
 
 - Override the default error templates.
   - Place the custom template in app/Resources/TwigBundle/views/Exception.
-  - Templates are named like "error<status>.<format>.twig", e.g. error404.html.twig.
-  - Templates can therefore be overridden for each error and format independently.
+  - Templates are named like "error(status).(format).twig", e.g. error404.html.twig.
+  - Templates can therefore be overridden for each status code and format independently.
   - If a template for a status code does not exist, use the more generic name for the format,
     e.g. error.json.twig.
   - If a template for the format does not exist as well, use the HTML template error.html.twig.
   - Exception pages can be tested by registering routes predefined in the TwigBundle.
 - Override the default exception controller.
   - Create a new controller.
-  - in the config.yml file, set twig: exception_controller to this controller.
+  - in the config.yml file, set `twig: exception_controller` to this controller.
 - Register custom event listeners that listen to the kernel.exception event.
   - Set a Response object in the GetResponseForExceptionEvent that is passed to the listener.
   - Propagation of the event is stopped as soon as the first listener set a Response.
 
-https://symfony.com/doc/current/controller/error_pages.html
+https://symfony.com/doc/3.0/controller/error_pages.html
 
 Bundle inheritance
 ------------------
@@ -645,13 +652,13 @@ Bundle inheritance
 - Validation rules cannot normally be overridden. It is necessary to create a new validation group
   for the changed rules and modify the bundle configuration to use the new group.
 
-https://symfony.com/doc/current/bundles/inheritance.html
+https://symfony.com/doc/3.0/bundles/inheritance.html
 
-https://symfony.com/doc/current/templating/overriding.html
+https://symfony.com/doc/3.0/templating/overriding.html
 
-https://symfony.com/doc/current/bundles/override.html#override-translations
+https://symfony.com/doc/3.0/bundles/override.html#override-translations
 
-https://symfony.com/doc/current/bundles/override.html#override-validation
+https://symfony.com/doc/3.0/bundles/override.html#override-validation
 
 Event dispatcher and kernel events
 ----------------------------------
@@ -665,7 +672,7 @@ With semantic configuration it is possible to configure a bundle. It is possible
 validation and default values to config values.
  
 Semantic configuration consists of these parts:
-- A configuration class implementing the ConfigurationInterface interface. This class returns
+- A configuration class implementing the `ConfigurationInterface` interface. This class returns
   a config tree builder that contains rules for validating the config values (ensuring that
   required values are configured and values have the correct type).
 - An extension class that extends the `Extension` class. This class receives the config value
@@ -673,8 +680,10 @@ Semantic configuration consists of these parts:
   configuration, the extension can e.g. load different service definition files or set
   the config values as service arguments.
   The extension class should follow a naming scheme to be auto-discovered by the framework:
-  - Be located in the DependencyInjection directory of the bundle.
   - Have the same name as the bundle class, but with an "Extension" suffix instead of "Bundle".
+  - Have the same namespace as the bundle class, but in the sub-namespace DependencyInjection (and
+    should therefore be located in a sub-directory of the same name in the bundle when following PSR-0 or
+    PSR-4).
 
 The config values can then be set in the config.yml (or similar) files of the application.
 Each bundle has a config namespace that equals the bundle name minus the "Bundle" suffix and
@@ -688,16 +697,16 @@ though, as processConfiguration() needs to be called manually and the extension 
 all values in an array of arrays.
 
 A shortcut for implementing `load()` and calling `processConfiguration()` is to derive
-the extension from `ConfiguratbleExtension` which provides the `loadInternal()` method.
+the extension from `ConfigurableExtension` which provides the `loadInternal()` method.
 This method receives the merged configuration.
 
 A bundle can prepend configuration for another bundle so that it acts as default value
 provider if config values are not set for the other bundle. To do this, the extension
-needs so implement the PrependExtensionInterface and provide the config in the prepend()
+needs to implement the `PrependExtensionInterface` and provide the config in the `prepend()`
 method.
 
 In contrast to a container parameter, a configuration parameter is only available in the
-extension's load() method, not in the service container.
+extension's `load()` method, not in the service container.
 
 The best practices suggest to use semantic configuration only for distributed bundles,
 not in a simple application.
@@ -707,21 +716,21 @@ Compiler passes:
 A compiler pass is a modification of the service container. With semantic configuration it
 is only possible to modify the current bundle (or to prepend settings), a compiler pass has 
 access to the complete service container and can therefore modify arbitrary container items.
-A compiler pass is registered in the bundle's build() method. A compiler pass name should
+A compiler pass is registered in the bundle's `build()` method. A compiler pass name should
 have the suffix "Pass" by convention.
 
 A common use case for a compiler pass is to collect all services with a specific tag and
 to provide these services to some other service.
 
-https://symfony.com/doc/current/bundles/extension.html
+https://symfony.com/doc/3.0/bundles/extension.html
 
-https://symfony.com/doc/current/bundles/configuration.html
+https://symfony.com/doc/3.0/bundles/configuration.html
 
-https://symfony.com/doc/current/bundles/prepend_extension.html
+https://symfony.com/doc/3.0/bundles/prepend_extension.html
 
-https://symfony.com/doc/current/best_practices/configuration.html#semantic-configuration-don-t-do-it
+https://symfony.com/doc/3.0/best_practices/configuration.html#semantic-configuration-don-t-do-it
 
-https://symfony.com/doc/current/service_container/compiler_passes.html
+https://symfony.com/doc/3.0/service_container/compiler_passes.html
 
 Controllers
 ===========
@@ -738,9 +747,9 @@ auto-discovered during routing and be referenced by the short-hand syntax
 Bundle:Class:Method (the Method part does not contain the "Action" suffix, it will be
 appended automatically when called).
 
-https://symfony.com/doc/current/bundles/best_practices.html#directory-structure
+https://symfony.com/doc/3.0/bundles/best_practices.html#directory-structure
 
-https://symfony.com/doc/current/controller.html#a-simple-controller
+https://symfony.com/doc/3.0/controller.html#a-simple-controller
 
 The base Controller class
 -------------------------
@@ -753,18 +762,18 @@ The request
 The request class can be automatically injected into the controller. To do this,
 use a method argument of type `Request`.
 
-https://symfony.com/doc/current/controller.html#the-request-object-as-a-controller-argument
+https://symfony.com/doc/3.0/controller.html#the-request-object-as-a-controller-argument
 
 The response
 ------------
 
 A controller should return a `Response` object or a sub-class, such as the built-in sub-classes
-`JsonResponse`, `RedirectResponse`, `BinaryFileResponse`. It can also return arbitrary values in
-which case an event listener for the kernel.view event must generate the Response object.
+`JsonResponse`, `RedirectResponse`, `BinaryFileResponse`, `StreamedResponse`. It can also return arbitrary values in
+which case an event listener for the kernel.view event must generate the response object.
 
-https://symfony.com/doc/current/controller.html#the-request-and-response-object
+https://symfony.com/doc/3.0/controller.html#the-request-and-response-object
 
-https://symfony.com/doc/current/components/http_foundation.html#response
+https://symfony.com/doc/3.0/components/http_foundation.html#response
 
 The cookies
 -----------
@@ -773,16 +782,16 @@ Cookies can be set on the response, using $response->headers->setCookie().
 By default a cookie is set to HTTP-only and can thus not be used in JavaScript on the client
 side. This can be changed through the constructor of the cookie.
 
-https://symfony.com/doc/current/components/http_foundation.html#setting-cookies
+https://symfony.com/doc/3.0/components/http_foundation.html#setting-cookies
 
-http://api.symfony.com/3.2/Symfony/Component/HttpFoundation/Cookie.html#method___construct
+http://api.symfony.com/3.0/Symfony/Component/HttpFoundation/Cookie.html#method___construct
 
 The session
 -----------
 
 The session can be accessed in two ways:
 
-- from the request object, using $request->getSession()
+- from the request object, using `$request->getSession()`.
 - by injecting the `session` service (or accessing it using an injected container instance, 
   such as in the base controller class).
 
@@ -790,7 +799,7 @@ Note: There is ongoing discussion on the session being a service, as it is - lik
 a data object. Maybe the session service will be removed in the future. From Symfony 3.3 on,
 the session object can be injected into a controller the same way as the request.
 
-https://symfony.com/doc/current/components/http_foundation/sessions.html
+https://symfony.com/doc/3.0/components/http_foundation/sessions.html
 
 https://github.com/symfony/symfony/issues/10557
 
@@ -809,7 +818,7 @@ Flash messages can be read from the flash bag using the get()/getAll() methods f
 which will also delete the messages, or using peek()/peekAll() to return the messages without
 deleting them. They can also be read from Twig templates (see example under the link below).
 
-https://symfony.com/doc/current/controller.html#flash-messages
+https://symfony.com/doc/3.0/controller.html#flash-messages
 
 HTTP redirects
 --------------
@@ -820,7 +829,7 @@ to set the HTTP status code in the response's constructor.
 The base controller class also provides shortcut methods redirect() and redirectToRoute() which
 also return a `RedirectResponse`.
 
-https://symfony.com/doc/current/controller.html#redirecting
+https://symfony.com/doc/3.0/controller.html#redirecting
 
 Internal redirects
 ------------------
@@ -832,7 +841,7 @@ based on the current request, setting the developer-provided controller.
 As this uses a sub-request, forwarding is purely internal and there are no consequences for
 the HTTP request.
 
-https://symfony.com/doc/current/controller/forwarding.html
+https://symfony.com/doc/3.0/controller/forwarding.html
 
 Generate 404 pages
 ------------------
@@ -844,36 +853,39 @@ There are three ways to return a 404 status:
 - When using the base controller, call createNotFoundException() which will create (but return,
   not throw) the exception.
 
-https://symfony.com/doc/current/controller.html#managing-errors-and-404-pages
+https://symfony.com/doc/3.0/controller.html#managing-errors-and-404-pages
 
 File upload
 -----------
 
-https://symfony.com/doc/current/controller/upload_file.html
+https://symfony.com/doc/3.0/controller/upload_file.html
 
 Built-in internal controllers
 -----------------------------
 
-?
+- `RedirectController` can be used to redirect a request during routing without having to create a custom controller.
+- `TemplateController` can be used to render a template during routing, optionally setting HTTP cache headers. This aids
+  in rendering static pages.
     
 Routing
 =======
 
-https://symfony.com/doc/current/components/routing.html
+https://symfony.com/doc/3.0/components/routing.html
 
 Configuration (YAML, XML, PHP & annotations)
 --------------------------------------------
 
-https://symfony.com/doc/current/routing.html#routing-examples
+https://symfony.com/doc/3.0/routing.html#routing-examples
 
 Restrict URL parameters
 -----------------------
 
-Using the `requirements` key, URL parameters can be restricted by regular expressions.
+Using the `requirements` key, URL parameters can be restricted by regular expressions. By default, parameters are
+implicitly restricted by the regex `[^/]+` and therefore delimited by slashes.
 
-Using the `schemes` key, a route can be restricted to a certain schme (HTTP, HTTPS).
+Using the `schemes` key, a route can be restricted to a certain scheme (HTTP, HTTPS).
 
-https://symfony.com/doc/current/routing.html#adding-wildcard-requirements
+https://symfony.com/doc/3.0/routing.html#adding-wildcard-requirements
 
 Set default values to URL parameters
 ------------------------------------
@@ -882,7 +894,7 @@ Set default values to URL parameters
 - YAML/XML: Set `defaults` key in the route definition.
 - PHP: Set value in the defaults array argument.
 
-https://symfony.com/doc/current/routing.html#giving-placeholders-a-default-value
+https://symfony.com/doc/3.0/routing.html#giving-placeholders-a-default-value
 
 Generate URL parameters
 -----------------------
@@ -891,43 +903,47 @@ Trigger redirects
 -----------------
 
 Redirects can be triggered directly in the configuration file by specifying the
-FrameworkBundle:Redirect:redirect and :urlRedirect controllers.
+`FrameworkBundle:Redirect:redirect` and `FrameworkBundle:Redirect:urlRedirect` controllers.
 
-https://symfony.com/doc/current/routing/redirect_in_config.html
+https://symfony.com/doc/3.0/routing/redirect_in_config.html
 
 Special internal routing attributes
 -----------------------------------
+
+The following values are set in the `attributes` bag of the request object:
+
+- _route: The matched route name. Is set automatically by the router.
+- _route_params: Parameters of the matched route. Is set automatically by the router.
+
+The following values are set in the request object, both in the `attributes` bag and in the `_route_params` attribute:
 
 - _controller: Specifies the controller to use.
 - _format: Specifies the request format (HTML, JSON, XML, ...).
 - _fragment: Specifies the #
 - _locale: Sets the request's locale (en, de, fr, ...).
 
-- _route: The matched route name. Is set automatically by the router.
-- _route_params: Parameters of the matched route. Is set automatically by the router.
-
-https://symfony.com/doc/current/routing.html#special-routing-parameters
+https://symfony.com/doc/3.0/routing.html#special-routing-parameters
 
 Domain name matching
 --------------------
 
-Using the `host` key, only allowing certain HTTP hosts is possible (placeholders may be used).
+Using the `host` key, allowing only certain HTTP hosts is possible (placeholders may be used).
 
-https://symfony.com/doc/current/routing/hostname_pattern.html
+https://symfony.com/doc/3.0/routing/hostname_pattern.html
 
 Conditional request matching
 ----------------------------
 
 Using the `condition` key, an expression following the expression syntax can be defined.
 
-https://symfony.com/doc/current/routing/conditions.html
+https://symfony.com/doc/3.0/routing/conditions.html
 
 HTTP methods matching
 ---------------------
 
 Using the `methods` key, a route can be restricted to certain HTTP methods (GET, POST, ...).
 
-https://symfony.com/doc/current/routing/requirements.html#adding-http-method-requirements
+https://symfony.com/doc/3.0/routing/requirements.html#adding-http-method-requirements
 
 User's locale guessing
 ----------------------
@@ -944,9 +960,9 @@ resource has a unique URL.
   link below).
 
 
-https://symfony.com/doc/current/translation/locale.html#the-locale-and-the-url
+https://symfony.com/doc/3.0/translation/locale.html#the-locale-and-the-url
 
-https://symfony.com/doc/current/session/locale_sticky_session.html
+https://symfony.com/doc/3.0/session/locale_sticky_session.html
 
 Router debugging
 ----------------
@@ -954,7 +970,7 @@ Router debugging
 - The console command debug:router can be used to print all registered routes.
 - The console command router:match can be used to test which route matches to a passed URL.
 
-https://symfony.com/doc/current/routing/debug.html
+https://symfony.com/doc/3.0/routing/debug.html
 
 Templating with Twig
 ====================
@@ -966,7 +982,7 @@ Auto escaping
 turned off for a string by applying the `raw` filter.
 - It is also possible to specify `autoescape` blocks to auto-escape everything within that block.
 
-https://symfony.com/doc/current/templating/escaping.html
+https://symfony.com/doc/3.0/templating/escaping.html
 
 https://twig.sensiolabs.org/doc/2.x/api.html#escaper-extension
 
@@ -1019,9 +1035,9 @@ Global variables
 - The value can also be a service; set the service ID as value, prefixed with an "@". Note that this service will NOT be
   lazy-loaded, but initialized as soon as Twig is loaded.
 
-https://symfony.com/doc/current/templating/global_variables.html
+https://symfony.com/doc/3.0/templating/global_variables.html
 
-https://symfony.com/doc/current/reference/twig_reference.html#app
+https://symfony.com/doc/3.0/reference/twig_reference.html#app
 
 Filters and functions
 ---------------------
@@ -1032,17 +1048,17 @@ Filters and functions
   a function call.
 - Functions are in form and syntax similar to PHP functions. A major difference is that when
   calling a method with arguments, these arguments can optionally be named instead of relying
-  on the position. Example: foo(bar='baz).
+  on the position. Example: foo(bar='baz').
 - Named arguments can also be applied to filters.
 - Besides built-in filters and functions, it is possible to define custom ones.
-  - Filters and standalone Twig: Instantiate a Twig_Filter object and call addFilter() on the
-    Twig_Environment.
-  - Filters and Symfony: Create a class that extends Twig_Extension. Let the getFilters() method
-    return an array of Twig_Filter objects. Register the extension in the dependency injection
-    container by creating a service for the extension and adding the tag twig.extension.
-  - Functions and standalone Twig: Instantiate a Twig_Function object and call addFunction() on the
-    Twig_Environment.
-  - Functions and Symfony: Like creating filters, but use getFunctions() instead of getFilters().
+  - Filters and standalone Twig: Instantiate a `Twig_Filter` object and call `addFilter()` on the
+    `Twig_Environment`.
+  - Filters and Symfony: Create a class that extends `Twig_Extension`. Let the `getFilters()` method
+    return an array of `Twig_Filter` objects. Register the extension in the dependency injection
+    container by creating a service for the extension and adding the tag `twig.extension`.
+  - Functions and standalone Twig: Instantiate a `Twig_Function` object and call `addFunction()` on the
+    `Twig_Environment`.
+  - Functions and Symfony: Like creating filters, but use `getFunctions()` instead of `getFilters()`.
     An extension can provide both filters and functions.
 
 https://twig.sensiolabs.org/doc/2.x/templates.html#filters
@@ -1057,7 +1073,7 @@ https://twig.sensiolabs.org/doc/1.x/functions/index.html
 
 https://twig.sensiolabs.org/doc/2.x/advanced.html#filters
 
-https://symfony.com/doc/current/templating/twig_extension.html
+https://symfony.com/doc/3.0/templating/twig_extension.html
 
 Template includes
 -----------------
@@ -1140,9 +1156,9 @@ URLs generation
   by getting the context of the router and setting values there, e.g. to specify different
   values for different controllers.
 
-https://symfony.com/doc/current/templating.html#linking-to-pages
+https://symfony.com/doc/3.0/templating.html#linking-to-pages
 
-https://symfony.com/doc/current/console/request_context.html
+https://symfony.com/doc/3.0/console/request_context.html
 
 Controller rendering
 --------------------
@@ -1151,7 +1167,7 @@ Controller rendering
   syntax.
 - The controller must be given in the string syntax bundle:controller:action.
 
-https://symfony.com/doc/current/templating/embedding_controllers.html
+https://symfony.com/doc/3.0/templating/embedding_controllers.html
 
 Translations and pluralization
 ------------------------------
@@ -1170,7 +1186,7 @@ Translations and pluralization
   {% trans_default_domain "mydomain" %} tag to the template (will NOT be inherited by included
   templates). 
 
-https://symfony.com/doc/current/translation.html#translations-in-templates
+https://symfony.com/doc/3.0/translation.html#translations-in-templates
 
 String interpolation
 --------------------
@@ -1205,11 +1221,11 @@ Assets management
   independent "buckets" of assets for which the aforementioned parameters can be set.
 
 
-https://symfony.com/doc/current/templating.html#linking-to-assets
+https://symfony.com/doc/3.0/templating.html#linking-to-assets
 
-https://symfony.com/doc/current/templating.html#including-stylesheets-and-javascripts-in-twig
+https://symfony.com/doc/3.0/templating.html#including-stylesheets-and-javascripts-in-twig
 
-https://symfony.com/doc/current/reference/configuration/framework.html#assets
+https://symfony.com/doc/3.0/reference/configuration/framework.html#assets
 
 Debugging variables
 -------------------
@@ -1246,9 +1262,9 @@ This declares the form inline. It is recommended that a form type class is creat
 that the type can be reused and form logic is generally separated from controller code (see
 below).
 
-https://symfony.com/doc/current/forms.html#creating-a-simple-form
+https://symfony.com/doc/3.0/forms.html#creating-a-simple-form
 
-https://symfony.com/doc/current/forms.html#building-the-form
+https://symfony.com/doc/3.0/forms.html#building-the-form
 
 Forms handling
 --------------
@@ -1264,7 +1280,7 @@ Forms handling
 Form validation actually validates the data model object linked to the form, not the form 
 itself. Define validation on the data model as described in the validation chapter below.
 
-https://symfony.com/doc/current/forms.html#handling-form-submissions
+https://symfony.com/doc/3.0/forms.html#handling-form-submissions
 
 Form types
 ----------
@@ -1277,7 +1293,7 @@ Form types
   - With Dependency Injection: Inject form.factory and call create() on the instance,
     also passing the class name of the new form type.
 
-https://symfony.com/doc/current/forms.html#creating-form-classes
+https://symfony.com/doc/3.0/forms.html#creating-form-classes
 
 Forms rendering with Twig
 -------------------------
@@ -1309,11 +1325,11 @@ To access individual values of an element, use this syntax:
 
 form.element.vars.value
 
-https://symfony.com/doc/current/forms.html#rendering-the-form
+https://symfony.com/doc/3.0/forms.html#rendering-the-form
 
-https://symfony.com/doc/current/form/rendering.html
+https://symfony.com/doc/3.0/form/rendering.html
 
-https://symfony.com/doc/current/reference/forms/twig_reference.html
+https://symfony.com/doc/3.0/reference/forms/twig_reference.html
 
 Forms theming
 -------------
@@ -1327,7 +1343,7 @@ Forms theming
 - Blocks not overridden will be taken from the default theme.
 - Read the link below for much more details.
 
-https://symfony.com/doc/current/form/form_themes.html
+https://symfony.com/doc/3.0/form/form_themes.html
 
 CSRF protection
 ---------------
@@ -1357,9 +1373,9 @@ CSRF protection
 
 https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
 
-https://symfony.com/doc/current/form/csrf_protection.html
+https://symfony.com/doc/3.0/form/csrf_protection.html
 
-https://symfony.com/doc/current/http_cache/form_csrf_caching.html
+https://symfony.com/doc/3.0/http_cache/form_csrf_caching.html
 
 https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29_Prevention_Cheat_Sheet
 
@@ -1400,7 +1416,7 @@ Data transformers
 - The `CallbackTransformer` is an implementation of `DataTransformerInterface` that
   takes custom callback functions for `transform()` and `reverseTransform()`.
 
-https://symfony.com/doc/current/form/data_transformers.html
+https://symfony.com/doc/3.0/form/data_transformers.html
 
 Form events
 -----------
@@ -1454,9 +1470,9 @@ Form type extensions
 
 https://symfony.com/doc/3.0/form/create_form_type_extension.html
 
-https://symfony.com/doc/current/form/data_transformers.html#creating-a-reusable-issue-selector-field
+https://symfony.com/doc/3.0/form/data_transformers.html#creating-a-reusable-issue-selector-field
 
-https://symfony.com/doc/current/form/create_custom_field_type.html
+https://symfony.com/doc/3.0/form/create_custom_field_type.html
     
 Data Validation
 ===============
