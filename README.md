@@ -1200,7 +1200,7 @@ Assets management
 -----------------
 
 - Links to assets like images, CSS, JavaScript are generated using the `asset` function.
-- This generates a relative URL. Absolute URLs can be generated with `absolute_url(asset('foo.png))`
+- This generates a relative URL. Absolute URLs can be generated with `absolute_url(asset('foo.png'))`
 - Best practice: Use template inheritance to add styles/scripts that are generally used 
   throughout the application in a parent template, add styles/scripts that are used only 
   in single templates in those templates. Use separate blocks for styles and for scripts
