@@ -1484,8 +1484,7 @@ PHP object validation
 - Validation can be applied to classes, class properties or methods (getters).
   Not all constraints support all of these types, though. Constraint classes can override
   the `getTargets()` method of the base `Constraint` class to define valid targets.
-- Properties either need to be public or have public getters that follow the naming
-  convention of beginning with get, is, has followed by the property name (CamelCase).
+- Properties can be validated even if they are private or protected and have no public getters.
 - Validation rules can be defined either using annotations in the validated class,
   a `validation.yml` or `validation.xml` file located in the `Resources/config`directory
   of a bundle or by implementing a public static method named `loadValidatorMetadata()`.
